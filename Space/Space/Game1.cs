@@ -60,8 +60,6 @@ namespace Space {
             playerList.Add(player);
         }
 
-        /// UnloadContent will be called once per game and is the place to unload
-        /// game-specific content.
         protected override void UnloadContent() {
             // TODO: Unload any non ContentManager content here
         }
