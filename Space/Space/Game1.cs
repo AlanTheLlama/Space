@@ -4,13 +4,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace Space
-{
+namespace Space {
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
-    public class Game1 : Game
-    {
+    public class Game1 : Game {
         GraphicsDeviceManager graphics;
         Viewport viewport;
         SpriteBatch spriteBatch;
@@ -28,14 +26,12 @@ namespace Space
         Boolean keyS = false;   //at a time
         Boolean keyD = false;
 
-        public Game1()
-        {
+        public Game1() {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
         }
 
-        protected override void Initialize()
-        {
+        protected override void Initialize() {
             // TODO: Add your initialization logic here
 
             base.Initialize();
@@ -43,8 +39,7 @@ namespace Space
 
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
-        protected override void LoadContent()
-        {
+        protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             viewport = GraphicsDevice.Viewport;
             cam = new Camera(viewport);
@@ -61,14 +56,12 @@ namespace Space
 
         /// UnloadContent will be called once per game and is the place to unload
         /// game-specific content.
-        protected override void UnloadContent()
-        {
+        protected override void UnloadContent() {
             // TODO: Unload any non ContentManager content here
         }
 
         //apologies for mild overcomplication on movementlol
-        protected override void Update(GameTime gameTime)
-        {
+        protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) {
                 Exit();
             }
@@ -79,18 +72,17 @@ namespace Space
 
             if (Keyboard.GetState().IsKeyDown(Keys.S)) {
                 keyS = true;
-            }
-            else keyS = false;
+            } else keyS = false;
+
             if (Keyboard.GetState().IsKeyDown(Keys.A)) {
                 keyA = true;
-            }
-            else keyA = false;
+            } else keyA = false;
+
             if (Keyboard.GetState().IsKeyDown(Keys.D)) {
                 keyD = true;
-            }
-            else keyD = false;
+            } else keyD = false;
 
-            if(keyW == true && keyS == false) {
+            if (keyW == true && keyS == false) {
                 if (keyW && keyA) {
                     player.rotation = (float)Math.PI * 1.75F;
                     player.pos = new Vector2(player.pos.X - 1, player.pos.Y - 1);
@@ -102,21 +94,20 @@ namespace Space
                     player.pos = new Vector2(player.pos.X, player.pos.Y - 1);
                 }
             }
-            if(keyS == true && keyW == false) {
+            if (keyS == true && keyW == false) {
                 if (keyS && keyA) {
                     player.rotation = (float)Math.PI * 1.25F;
                     player.pos = new Vector2(player.pos.X - 1, player.pos.Y + 1);
                 } else if (keyS && keyD) {
                     player.rotation = (float)Math.PI * 0.75F;
                     player.pos = new Vector2(player.pos.X + 1, player.pos.Y + 1);
-                }
-                else {
+                } else {
                     player.rotation = (float)Math.PI;
                     player.pos = new Vector2(player.pos.X, player.pos.Y + 1);
                 }
             }
 
-            if(keyA == true && keyW == false && keyS == false) {
+            if (keyA == true && keyW == false && keyS == false) {
                 player.rotation = (float)Math.PI * 1.5F;
                 player.pos = new Vector2(player.pos.X - 1, player.pos.Y);
             }
@@ -131,23 +122,21 @@ namespace Space
         }
 
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime)
-        {
+        protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Viewport = viewport;
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
 
-            foreach (PlayerShip ships in playerList)
-            {
-                spriteBatch.Draw(ship, 
+            foreach (PlayerShip ships in playerList) {
+                spriteBatch.Draw(ship,
                     new Rectangle((int)ships.pos.X, (int)ships.pos.Y, ship.Width, ship.Height),
-                    null, 
+                    null,
                     Color.White,
                     ships.rotation,
                     new Vector2(ship.Width / 2, ship.Height / 2),
                     SpriteEffects.None, 0);
-                
+
             }
 
             //drawing some tiles to represent camera/ship movement against something that stays still

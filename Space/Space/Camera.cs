@@ -22,16 +22,14 @@ namespace Space {
 
         private float currentMouseWheelValue, previousMouseWheelValue, zoom, previousZoom;
 
-        public Camera(Viewport viewport)
-        {
+        public Camera(Viewport viewport) {
             Bounds = viewport.Bounds;
             Zoom = 1f;
             Position = Vector2.Zero;
         }
 
 
-        private void UpdateVisibleArea()
-        {
+        private void UpdateVisibleArea() {
             var inverseViewMatrix = Matrix.Invert(Transform);
 
             var tl = Vector2.Transform(Vector2.Zero, inverseViewMatrix);
@@ -48,132 +46,95 @@ namespace Space {
             VisibleArea = new Rectangle((int)min.X, (int)min.Y, (int)(max.X - min.X), (int)(max.Y - min.Y));
         }
 
-        private void UpdateMatrix()
-        {
+        private void UpdateMatrix() {
             Transform = Matrix.CreateTranslation(new Vector3(-Position.X, -Position.Y, 0)) *
                     Matrix.CreateScale(Zoom) *
                     Matrix.CreateTranslation(new Vector3(Bounds.Width * 0.5f, Bounds.Height * 0.5f, 0));
             UpdateVisibleArea();
         }
 
-        public void MoveCamera(Vector2 movePosition)
-        {
+        public void MoveCamera(Vector2 movePosition) {
             Vector2 newPosition = Position + movePosition;
             Position = newPosition;
         }
 
-        public void AdjustZoom(float zoomAmount)
-        {
+        public void AdjustZoom(float zoomAmount) {
             Zoom += zoomAmount;
-            if (Zoom < .35f)
-            {
+            if (Zoom < .35f) {
                 Zoom = .35f;
             }
-            if (Zoom > 2f)
-            {
+            if (Zoom > 2f) {
                 Zoom = 2f;
             }
         }
 
-        public void UpdateCamera(Viewport bounds)
-        {
+        public void UpdateCamera(Viewport bounds) {
             Bounds = bounds.Bounds;
             UpdateMatrix();
 
             Vector2 cameraMovement = Vector2.Zero;
             int moveSpeed;
 
-            if (Zoom > .8f)
-            {
+            if (Zoom > .8f) {
                 moveSpeed = 15;
-            }
-            else if (Zoom < .8f && Zoom >= .6f)
-            {
+            } else if (Zoom < .8f && Zoom >= .6f) {
                 moveSpeed = 20;
-            }
-            else if (Zoom < .6f && Zoom > .35f)
-            {
+            } else if (Zoom < .6f && Zoom > .35f) {
                 moveSpeed = 25;
-            }
-            else if (Zoom <= .35f)
-            {
+            } else if (Zoom <= .35f) {
                 moveSpeed = 30;
-            }
-            else
-            {
+            } else {
                 moveSpeed = 10;
             }
 
 
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
-            {
+            if (Keyboard.GetState().IsKeyDown(Keys.W)) {
                 keyW = true;
-            }
-            else keyW = false;
+            } else keyW = false;
 
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
-            {
+            if (Keyboard.GetState().IsKeyDown(Keys.S)) {
                 keyS = true;
-            }
-            else keyS = false;
+            } else keyS = false;
 
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-            {
+            if (Keyboard.GetState().IsKeyDown(Keys.A)) {
                 keyA = true;
-            }
-            else keyA = false;
+            } else keyA = false;
 
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
-            {
+            if (Keyboard.GetState().IsKeyDown(Keys.D)) {
                 keyD = true;
-            }
-            else keyD = false;
+            } else keyD = false;
 
-            if (keyW == true && keyS == false)
-            {
-                if (keyW && keyA)
-                {
+            if (keyW == true && keyS == false) {
+                if (keyW && keyA) {
                     cameraMovement.X = -1;
                     cameraMovement.Y = -1;
-                }
-                else if (keyW && keyD)
-                {
+                } else if (keyW && keyD) {
                     cameraMovement.X = 1;
                     cameraMovement.Y = -1;
-                }
-                else
-                {
+                } else {
                     cameraMovement.X = 0;
                     cameraMovement.Y = -1;
                 }
             }
-            if (keyS == true && keyW == false)
-            {
-                if (keyS && keyA)
-                {
+            if (keyS == true && keyW == false) {
+                if (keyS && keyA) {
                     cameraMovement.X = -1;
                     cameraMovement.Y = 1;
-                }
-                else if (keyS && keyD)
-                {
+                } else if (keyS && keyD) {
                     cameraMovement.X = 1;
                     cameraMovement.Y = 1;
-                }
-                else
-                {
+                } else {
                     cameraMovement.X = 0;
                     cameraMovement.Y = 1;
                 }
             }
 
-            if (keyA == true && keyW == false && keyS == false && keyD == false)
-            {
+            if (keyA == true && keyW == false && keyS == false && keyD == false) {
                 cameraMovement.X = -1;
                 cameraMovement.Y = 0;
             }
 
-            if (keyD == true && keyW == false && keyS == false && keyA == false)
-            {
+            if (keyD == true && keyW == false && keyS == false && keyA == false) {
                 cameraMovement.X = 1;
                 cameraMovement.Y = 0;
             }
@@ -181,22 +142,19 @@ namespace Space {
             previousMouseWheelValue = currentMouseWheelValue;
             currentMouseWheelValue = Mouse.GetState().ScrollWheelValue;
 
-            if (currentMouseWheelValue > previousMouseWheelValue)
-            {
+            if (currentMouseWheelValue > previousMouseWheelValue) {
                 AdjustZoom(.05f);
                 Console.WriteLine(moveSpeed);
             }
 
-            if (currentMouseWheelValue < previousMouseWheelValue)
-            {
+            if (currentMouseWheelValue < previousMouseWheelValue) {
                 AdjustZoom(-.05f);
                 Console.WriteLine(moveSpeed);
             }
 
             previousZoom = zoom;
             zoom = Zoom;
-            if (previousZoom != zoom)
-            {
+            if (previousZoom != zoom) {
                 Console.WriteLine(zoom);
 
             }
