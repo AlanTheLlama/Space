@@ -27,8 +27,6 @@ namespace Space {
             spaceObjects = new List<SpaceObject>();
 
             for(int i = 0; i < rInt; i++) {
-                r = new Random(); //this here
-
                 rInt = r.Next(1, 4);
                 int x = r.Next(0, SizeX);
                 int y = r.Next(0, SizeY);
