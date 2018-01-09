@@ -17,6 +17,7 @@ namespace Space {
         public int getXpos() {
             return x;
         }
+
         public int getYpos() {
             return y;
         }
