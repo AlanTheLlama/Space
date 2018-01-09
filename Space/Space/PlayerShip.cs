@@ -15,6 +15,8 @@ namespace Space
         public float rotSpeed;
         public float acceleration;
         public bool initialized;
+        public int identifier;
+        Random r = new Random();
 
         public PlayerShip(Vector2 vec, float rot, float speed, float rotSpeed, float acceleration)
         {
@@ -24,6 +26,14 @@ namespace Space
             this.rotSpeed = rotSpeed;
             this.acceleration = acceleration;
             this.initialized = true;
+            this.identifier = r.Next(0, 1000000);
+        }
+
+        public int getID() {
+            return identifier;
+        }
+        public float getRot() {
+            return this.rotation;
         }
     }
 }

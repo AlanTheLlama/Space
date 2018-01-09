@@ -15,6 +15,9 @@ namespace Space {
         SpriteBatch spriteBatch;
         Camera cam;
 
+        NetPeerConfiguration config;
+        NetClient client;
+
         public float MAX_SPEED = 6;
 
         World world;
@@ -37,8 +40,9 @@ namespace Space {
             world = new World(15000, 15000);
             world.Generate(600, 1000, 50);
 
-            var config = new NetPeerConfiguration("Squad");
-            var client = new NetClient(config);
+            config = new NetPeerConfiguration("Squad");
+            client = new NetClient(config);
+
             client.Start();
             client.Connect(host: "127.0.0.1", port: 31579);
 
@@ -119,6 +123,9 @@ namespace Space {
             }
 
             updatePosition(player);
+            sendToServer(player);
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
 
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
@@ -206,6 +213,12 @@ namespace Space {
             x += ps.speed * (float) Math.Cos(ps.rotation);
             y += ps.speed * (float) Math.Sin(ps.rotation);
             ps.pos = new Vector2(x, y);
+        }
+        
+        public void sendToServer(PlayerShip ps) {
+            NetOutgoingMessage msg = client.CreateMessage();
+            msg.Write(ps.pos.X.ToString() + "/" + ps.pos.Y.ToString() + "/" + ps.getRot().ToString() + "/" + ps.getID().ToString());
+            client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
         }
     }
 }
