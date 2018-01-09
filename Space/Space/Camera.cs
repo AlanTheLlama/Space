@@ -15,6 +15,11 @@ namespace Space {
         public Rectangle VisibleArea { get; protected set; }
         public Matrix Transform { get; protected set; }
 
+        private bool keyW = false;
+        private bool keyA = false;
+        private bool keyS = false;
+        private bool keyD = false;
+
         private float currentMouseWheelValue, previousMouseWheelValue, zoom, previousZoom;
 
         public Camera(Viewport viewport)
@@ -100,28 +105,77 @@ namespace Space {
             }
 
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Up))
+            if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
-                cameraMovement.Y = -moveSpeed;
-                Console.Write(cameraMovement.Y);
+                keyW = true;
+            }
+            else keyW = false;
+
+            if (Keyboard.GetState().IsKeyDown(Keys.S))
+            {
+                keyS = true;
+            }
+            else keyS = false;
+
+            if (Keyboard.GetState().IsKeyDown(Keys.A))
+            {
+                keyA = true;
+            }
+            else keyA = false;
+
+            if (Keyboard.GetState().IsKeyDown(Keys.D))
+            {
+                keyD = true;
+            }
+            else keyD = false;
+
+            if (keyW == true && keyS == false)
+            {
+                if (keyW && keyA)
+                {
+                    cameraMovement.X = -1;
+                    cameraMovement.Y = -1;
+                }
+                else if (keyW && keyD)
+                {
+                    cameraMovement.X = 1;
+                    cameraMovement.Y = -1;
+                }
+                else
+                {
+                    cameraMovement.X = 0;
+                    cameraMovement.Y = -1;
+                }
+            }
+            if (keyS == true && keyW == false)
+            {
+                if (keyS && keyA)
+                {
+                    cameraMovement.X = -1;
+                    cameraMovement.Y = 1;
+                }
+                else if (keyS && keyD)
+                {
+                    cameraMovement.X = 1;
+                    cameraMovement.Y = 1;
+                }
+                else
+                {
+                    cameraMovement.X = 0;
+                    cameraMovement.Y = 1;
+                }
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+            if (keyA == true && keyW == false && keyS == false && keyD == false)
             {
-                cameraMovement.Y = moveSpeed;
-                Console.Write(cameraMovement.Y);
+                cameraMovement.X = -1;
+                cameraMovement.Y = 0;
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            if (keyD == true && keyW == false && keyS == false && keyA == false)
             {
-                cameraMovement.X = -moveSpeed;
-                Console.Write(cameraMovement.X);
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Right))
-            {
-                cameraMovement.X = moveSpeed;
-                Console.Write(cameraMovement.X);
+                cameraMovement.X = 1;
+                cameraMovement.Y = 0;
             }
 
             previousMouseWheelValue = currentMouseWheelValue;

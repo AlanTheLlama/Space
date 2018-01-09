@@ -17,7 +17,10 @@ namespace Space
         Camera cam;
 
         public List<PlayerShip> playerList;
+
         public Texture2D ship;
+        public Texture2D testTile;
+
         public PlayerShip player;
 
         Boolean keyW = false;   //these are necessary for angling the sprites when two keys are pressed,
@@ -48,10 +51,12 @@ namespace Space
 
             playerList = new List<PlayerShip>();
 
-            player = new PlayerShip(new Vector2(10, 10), 0);
-            playerList.Add(player);
-
+            //textures
             ship = Content.Load<Texture2D>("Images/ship");
+            testTile = Content.Load<Texture2D>("Images/tile");
+
+            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2), 0);
+            playerList.Add(player);
         }
 
         /// UnloadContent will be called once per game and is the place to unload
@@ -144,6 +149,12 @@ namespace Space
                     SpriteEffects.None, 0);
                 
             }
+
+            //drawing some tiles to represent camera/ship movement against something that stays still
+            spriteBatch.Draw(testTile, new Rectangle(60, 60, 10, 10), Color.White);
+            spriteBatch.Draw(testTile, new Rectangle(15, -50, 10, 10), Color.White);
+            spriteBatch.Draw(testTile, new Rectangle(200, 0, 10, 10), Color.White);
+            spriteBatch.Draw(testTile, new Rectangle(100, -300, 10, 10), Color.White);
 
             spriteBatch.End();
 
