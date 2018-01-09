@@ -176,18 +176,20 @@ namespace Space {
 
         public void accelerate(PlayerShip ps)
         {
-            if (ps.speed < MAX_SPEED)
+            ps.speed += ps.acceleration;
+            if (ps.speed > MAX_SPEED)
             {
-                ps.speed += ps.acceleration;
+                ps.speed = MAX_SPEED;
             }
 
         }
 
         public void brake(PlayerShip ps)
         {
-            if (ps.speed > 0)
+            ps.speed -= ps.acceleration;
+            if (ps.speed < 0)
             {
-                ps.speed -= ps.acceleration;
+                ps.speed = 0;
             }
         }
 
