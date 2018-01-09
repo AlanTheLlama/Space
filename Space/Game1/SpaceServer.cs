@@ -7,6 +7,10 @@ namespace SpaceServer {
     public class SpaceServer : Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        NetPeerConfiguration config;
+        NetServer server;
+
+        string serverStatus;
 
         public SpaceServer() {
             graphics = new GraphicsDeviceManager(this);
@@ -14,11 +18,11 @@ namespace SpaceServer {
         }
 
         protected override void Initialize() {
-            var config = new NetPeerConfiguration("Squad");
+            config = new NetPeerConfiguration("Squad");
             config.Port = 31579;
-            var server = new NetServer(config);
+            server = new NetServer(config);
 
-            server.Start(); 
+            server.Start();
 
             base.Initialize();
         }
@@ -35,6 +39,9 @@ namespace SpaceServer {
         protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            serverStatus = "Server Status: " + server.ConnectionsCount;
+            System.Diagnostics.Debug.WriteLine(serverStatus);
 
             base.Update(gameTime);
         }

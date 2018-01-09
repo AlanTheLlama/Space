@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -35,6 +36,11 @@ namespace Space {
             // TODO: Add your initialization logic here
             world = new World(15000, 15000);
             world.Generate(600, 1000, 50);
+
+            var config = new NetPeerConfiguration("Squad");
+            var client = new NetClient(config);
+            client.Start();
+            client.Connect(host: "127.0.0.1", port: 31579);
 
             base.Initialize();
         }
