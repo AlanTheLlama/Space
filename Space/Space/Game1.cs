@@ -14,10 +14,13 @@ namespace Space {
         SpriteBatch spriteBatch;
         Camera cam;
 
+        World world;
+
         public List<PlayerShip> playerList;
 
-        public Texture2D ship;
-        public Texture2D testTile;
+        public static Texture2D ship;
+        public static Texture2D testTile;
+        public static Texture2D asteroid;
 
         public PlayerShip player;
 
@@ -33,6 +36,8 @@ namespace Space {
 
         protected override void Initialize() {
             // TODO: Add your initialization logic here
+            world = new World(1000, 1000);
+            world.Generate(100, 500, 50);
 
             base.Initialize();
         }
@@ -49,6 +54,7 @@ namespace Space {
             //textures
             ship = Content.Load<Texture2D>("Images/ship");
             testTile = Content.Load<Texture2D>("Images/tile");
+            asteroid = Content.Load<Texture2D>("Images/asteroid");
 
             player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2), 0);
             playerList.Add(player);
@@ -128,6 +134,13 @@ namespace Space {
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
 
+            foreach (SpaceObject obj in World.spaceObjects) {
+                spriteBatch.Draw(obj.getImage(),
+                    new Rectangle(obj.getXpos(), obj.getYpos(), 50, 50),
+                    Color.White);
+                System.Diagnostics.Debug.WriteLine("Asteroid co-ord: " + obj.getXpos() + ", " + obj.getYpos() + ". ");
+            }
+
             foreach (PlayerShip ships in playerList) {
                 spriteBatch.Draw(ship,
                     new Rectangle((int)ships.pos.X, (int)ships.pos.Y, ship.Width, ship.Height),
@@ -144,6 +157,7 @@ namespace Space {
             spriteBatch.Draw(testTile, new Rectangle(15, -50, 10, 10), Color.White);
             spriteBatch.Draw(testTile, new Rectangle(200, 0, 10, 10), Color.White);
             spriteBatch.Draw(testTile, new Rectangle(100, -300, 10, 10), Color.White);
+            spriteBatch.Draw(asteroid, new Rectangle(50, 50, 50, 50), Color.White);
 
             spriteBatch.End();
 
