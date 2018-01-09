@@ -14,18 +14,15 @@ namespace Space {
         public Rectangle Bounds { get; protected set; }
         public Rectangle VisibleArea { get; protected set; }
         public Matrix Transform { get; protected set; }
-
-        private bool keyW = false;
-        private bool keyA = false;
-        private bool keyS = false;
-        private bool keyD = false;
+        public PlayerShip player;
 
         private float currentMouseWheelValue, previousMouseWheelValue, zoom, previousZoom;
 
-        public Camera(Viewport viewport) {
+        public Camera(Viewport viewport, PlayerShip player) {
             Bounds = viewport.Bounds;
             Zoom = 1f;
             Position = Vector2.Zero;
+            this.player = player;
         }
 
 
@@ -73,70 +70,10 @@ namespace Space {
             UpdateMatrix();
 
             Vector2 cameraMovement = Vector2.Zero;
-            int moveSpeed;
 
-            if (Zoom > .8f) {
-                moveSpeed = 15;
-            } else if (Zoom < .8f && Zoom >= .6f) {
-                moveSpeed = 20;
-            } else if (Zoom < .6f && Zoom > .35f) {
-                moveSpeed = 25;
-            } else if (Zoom <= .35f) {
-                moveSpeed = 30;
-            } else {
-                moveSpeed = 10;
-            }
-
-
-            if (Keyboard.GetState().IsKeyDown(Keys.W)) {
-                keyW = true;
-            } else keyW = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.S)) {
-                keyS = true;
-            } else keyS = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.A)) {
-                keyA = true;
-            } else keyA = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.D)) {
-                keyD = true;
-            } else keyD = false;
-
-            if (keyW == true && keyS == false) {
-                if (keyW && keyA) {
-                    cameraMovement.X = - Game1.player.speed;
-                    cameraMovement.Y = - Game1.player.speed;
-                } else if (keyW && keyD) {
-                    cameraMovement.X = Game1.player.speed;
-                    cameraMovement.Y = - Game1.player.speed;
-                } else {
-                    cameraMovement.X = 0;
-                    cameraMovement.Y = - Game1.player.speed;
-                }
-            }
-            if (keyS == true && keyW == false) {
-                if (keyS && keyA) {
-                    cameraMovement.X = - Game1.player.speed;
-                    cameraMovement.Y = Game1.player.speed;
-                } else if (keyS && keyD) {
-                    cameraMovement.X = Game1.player.speed;
-                    cameraMovement.Y = Game1.player.speed;
-                } else {
-                    cameraMovement.X = 0;
-                    cameraMovement.Y = Game1.player.speed;
-                }
-            }
-
-            if (keyA == true && keyW == false && keyS == false && keyD == false) {
-                cameraMovement.X = - Game1.player.speed;
-                cameraMovement.Y = 0;
-            }
-
-            if (keyD == true && keyW == false && keyS == false && keyA == false) {
-                cameraMovement.X = Game1.player.speed;
-                cameraMovement.Y = 0;
+            if (player.initialized)
+            {
+                Position = this.player.pos;
             }
 
             previousMouseWheelValue = currentMouseWheelValue;
@@ -144,12 +81,10 @@ namespace Space {
 
             if (currentMouseWheelValue > previousMouseWheelValue) {
                 AdjustZoom(.05f);
-                Console.WriteLine(moveSpeed);
             }
 
             if (currentMouseWheelValue < previousMouseWheelValue) {
                 AdjustZoom(-.05f);
-                Console.WriteLine(moveSpeed);
             }
 
             previousZoom = zoom;

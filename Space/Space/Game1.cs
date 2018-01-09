@@ -14,6 +14,8 @@ namespace Space {
         SpriteBatch spriteBatch;
         Camera cam;
 
+        public float MAX_SPEED = 6;
+
         World world;
 
         public List<PlayerShip> playerList;
@@ -23,11 +25,6 @@ namespace Space {
         public static Texture2D asteroid;
 
         public static PlayerShip player;
-
-        Boolean keyW = false;   //these are necessary for angling the sprites when two keys are pressed,
-        Boolean keyA = false;   //because the Keyboard.GetState() function can only handle one key
-        Boolean keyS = false;   //at a time
-        Boolean keyD = false;
 
         public Game1() {
             graphics = new GraphicsDeviceManager(this);
@@ -46,8 +43,6 @@ namespace Space {
         /// all of your content.
         protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            viewport = GraphicsDevice.Viewport;
-            cam = new Camera(viewport);
 
             playerList = new List<PlayerShip>();
 
@@ -56,8 +51,11 @@ namespace Space {
             testTile = Content.Load<Texture2D>("Images/tile");
             asteroid = Content.Load<Texture2D>("Images/asteroid");
 
-            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2), 0, 3);
+            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2), -((float)0.5 * ((float)Math.PI)), 1, (float)0.1, (float)0.4);
             playerList.Add(player);
+
+            viewport = GraphicsDevice.Viewport;
+            cam = new Camera(viewport, player);
         }
 
         /// UnloadContent will be called once per game and is the place to unload
@@ -71,6 +69,11 @@ namespace Space {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) {
                 Exit();
             }
+
+            bool keyW = false;   //these are necessary for angling the sprites when two keys are pressed,
+            bool keyA = false;   //because the Keyboard.GetState() function can only handle one key
+            bool keyS = false;   //at a time
+            bool keyD = false;
 
             if (Keyboard.GetState().IsKeyDown(Keys.W)) {
                 keyW = true;
@@ -89,39 +92,29 @@ namespace Space {
             } else keyD = false;
 
             if (keyW == true && keyS == false) {
-                if (keyW && keyA) {
-                    player.rotation = (float)Math.PI * 1.75F;
-                    player.pos = new Vector2(player.pos.X - player.speed, player.pos.Y - player.speed);
-                } else if (keyW && keyD) {
-                    player.rotation = (float)Math.PI * 0.25F;
-                    player.pos = new Vector2(player.pos.X + player.speed, player.pos.Y - player.speed);
-                } else {
-                    player.rotation = 0;
-                    player.pos = new Vector2(player.pos.X, player.pos.Y - player.speed);
-                }
+                
             }
-            if (keyS == true && keyW == false) {
-                if (keyS && keyA) {
-                    player.rotation = (float)Math.PI * 1.25F;
-                    player.pos = new Vector2(player.pos.X - player.speed, player.pos.Y + player.speed);
-                } else if (keyS && keyD) {
-                    player.rotation = (float)Math.PI * 0.75F;
-                    player.pos = new Vector2(player.pos.X + player.speed, player.pos.Y + player.speed);
-                } else {
-                    player.rotation = (float)Math.PI;
-                    player.pos = new Vector2(player.pos.X, player.pos.Y + player.speed);
-                }
+            if (keyW == true)
+            {
+                accelerate(player);
             }
 
-            if (keyA == true && keyW == false && keyS == false) {
-                player.rotation = (float)Math.PI * 1.5F;
-                player.pos = new Vector2(player.pos.X - player.speed, player.pos.Y);
+            if (keyS == true)
+            {
+                brake(player);
             }
 
-            if (keyD == true && keyW == false && keyS == false) {
-                player.rotation = (float)Math.PI * 0.5F;
-                player.pos = new Vector2(player.pos.X + player.speed, player.pos.Y);
+            if (keyD == true)
+            {
+                rotateRight(player);
             }
+
+            if (keyA == true)
+            {
+                rotateLeft(player);
+            }
+
+            updatePosition(player);
 
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
@@ -146,7 +139,7 @@ namespace Space {
                     new Rectangle((int)ships.pos.X, (int)ships.pos.Y, ship.Width, ship.Height),
                     null,
                     Color.White,
-                    ships.rotation,
+                    ships.rotation + (float) 0.5 * (float) Math.PI,
                     new Vector2(ship.Width / 2, ship.Height / 2),
                     SpriteEffects.None, 0);
 
@@ -162,6 +155,51 @@ namespace Space {
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        public void rotateRight(PlayerShip ps)
+        {
+            ps.rotation = ps.rotation + ps.rotSpeed;
+            if (ps.rotation > 2 * ((float)Math.PI))
+            {
+                ps.rotation = ps.rotation - (2 * ((float)Math.PI));
+            }
+
+        }
+
+        public void rotateLeft(PlayerShip ps)
+        {
+            ps.rotation = ps.rotation - ps.rotSpeed;
+            if (ps.rotation < 0)
+            {
+                ps.rotation = ps.rotation + (2 * ((float)Math.PI));
+            }
+        }
+
+        public void accelerate(PlayerShip ps)
+        {
+            if (ps.speed < MAX_SPEED)
+            {
+                ps.speed += ps.acceleration;
+            }
+
+        }
+
+        public void brake(PlayerShip ps)
+        {
+            if (ps.speed > 0)
+            {
+                ps.speed -= ps.acceleration;
+            }
+        }
+
+        public void updatePosition(PlayerShip ps)
+        {
+            float x = ps.pos.X;
+            float y = ps.pos.Y;
+            x += ps.speed * (float) Math.Cos(ps.rotation);
+            y += ps.speed * (float) Math.Sin(ps.rotation);
+            ps.pos = new Vector2(x, y);
         }
     }
 }
