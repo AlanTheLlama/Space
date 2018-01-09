@@ -12,7 +12,9 @@ namespace Space
     public class Game1 : Game
     {
         GraphicsDeviceManager graphics;
+        Viewport viewport;
         SpriteBatch spriteBatch;
+        Camera cam;
 
         public List<PlayerShip> playerList;
         public Texture2D ship;
@@ -34,11 +36,6 @@ namespace Space
             // TODO: Add your initialization logic here
 
             base.Initialize();
-
-            playerList = new List<PlayerShip>();
-
-            player = new PlayerShip(new Vector2(10, 500), 0);
-            playerList.Add(player);
         }
 
         /// LoadContent will be called once per game and is the place to load
@@ -46,6 +43,13 @@ namespace Space
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            viewport = GraphicsDevice.Viewport;
+            cam = new Camera(viewport);
+
+            playerList = new List<PlayerShip>();
+
+            player = new PlayerShip(new Vector2(10, 10), 0);
+            playerList.Add(player);
 
             ship = Content.Load<Texture2D>("Images/ship");
         }
@@ -57,8 +61,7 @@ namespace Space
             // TODO: Unload any non ContentManager content here
         }
 
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
+        //apologies for mild overcomplication on movementlol
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) {
@@ -118,15 +121,17 @@ namespace Space
                 player.pos = new Vector2(player.pos.X + 1, player.pos.Y);
             }
 
+            cam.UpdateCamera(viewport);
             base.Update(gameTime);
         }
 
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            GraphicsDevice.Viewport = viewport;
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
 
             foreach (PlayerShip ships in playerList)
             {
