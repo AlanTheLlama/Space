@@ -27,14 +27,16 @@ namespace Space {
             spaceObjects = new List<SpaceObject>();
 
             for(int i = 0; i < rInt; i++) {
-                rInt = r.Next(1, 4);
+                int type = r.Next(1, 5);
+                //System.Diagnostics.Debug.WriteLine("Type: " + type);
+
                 int x = r.Next(0, SizeX);
                 int y = r.Next(0, SizeY);
 
-                if (rInt == 1) spaceObjects.Add(new Asteroid(x, y));
-                if (rInt == 2) spaceObjects.Add(new Asteroid(x, y)); //only one type of SpaceObject rn lol
-                if (rInt == 3) spaceObjects.Add(new Asteroid(x, y));
-                if (rInt == 4) spaceObjects.Add(new Asteroid(x, y));
+                if (type == 1) spaceObjects.Add(new Asteroid(x, y));
+                if (type == 2) spaceObjects.Add(new Asteroid(x, y)); //only one type of SpaceObject rn lol
+                if (type == 3) spaceObjects.Add(new Asteroid(x, y));
+                if (type == 4) spaceObjects.Add(new Asteroid(x, y));
             }
         }
     }

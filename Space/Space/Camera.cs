@@ -106,36 +106,36 @@ namespace Space {
 
             if (keyW == true && keyS == false) {
                 if (keyW && keyA) {
-                    cameraMovement.X = -1;
-                    cameraMovement.Y = -1;
+                    cameraMovement.X = - Game1.player.speed;
+                    cameraMovement.Y = - Game1.player.speed;
                 } else if (keyW && keyD) {
-                    cameraMovement.X = 1;
-                    cameraMovement.Y = -1;
+                    cameraMovement.X = Game1.player.speed;
+                    cameraMovement.Y = - Game1.player.speed;
                 } else {
                     cameraMovement.X = 0;
-                    cameraMovement.Y = -1;
+                    cameraMovement.Y = - Game1.player.speed;
                 }
             }
             if (keyS == true && keyW == false) {
                 if (keyS && keyA) {
-                    cameraMovement.X = -1;
-                    cameraMovement.Y = 1;
+                    cameraMovement.X = - Game1.player.speed;
+                    cameraMovement.Y = Game1.player.speed;
                 } else if (keyS && keyD) {
-                    cameraMovement.X = 1;
-                    cameraMovement.Y = 1;
+                    cameraMovement.X = Game1.player.speed;
+                    cameraMovement.Y = Game1.player.speed;
                 } else {
                     cameraMovement.X = 0;
-                    cameraMovement.Y = 1;
+                    cameraMovement.Y = Game1.player.speed;
                 }
             }
 
             if (keyA == true && keyW == false && keyS == false && keyD == false) {
-                cameraMovement.X = -1;
+                cameraMovement.X = - Game1.player.speed;
                 cameraMovement.Y = 0;
             }
 
             if (keyD == true && keyW == false && keyS == false && keyA == false) {
-                cameraMovement.X = 1;
+                cameraMovement.X = Game1.player.speed;
                 cameraMovement.Y = 0;
             }
 

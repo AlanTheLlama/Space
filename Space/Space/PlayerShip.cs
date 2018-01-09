@@ -11,11 +11,13 @@ namespace Space
     {
         public Vector2 pos { get; set; }
         public float rotation { get; set; }
+        public float speed;
 
-        public PlayerShip(Vector2 vec, float rot)
+        public PlayerShip(Vector2 vec, float rot, float speed)
         {
             pos = vec;
             rotation = rot;
+            this.speed = speed;
         }
     }
 }

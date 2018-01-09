@@ -22,7 +22,7 @@ namespace Space {
         public static Texture2D testTile;
         public static Texture2D asteroid;
 
-        public PlayerShip player;
+        public static PlayerShip player;
 
         Boolean keyW = false;   //these are necessary for angling the sprites when two keys are pressed,
         Boolean keyA = false;   //because the Keyboard.GetState() function can only handle one key
@@ -36,8 +36,8 @@ namespace Space {
 
         protected override void Initialize() {
             // TODO: Add your initialization logic here
-            world = new World(1000, 1000);
-            world.Generate(100, 500, 50);
+            world = new World(15000, 15000);
+            world.Generate(600, 1000, 50);
 
             base.Initialize();
         }
@@ -56,7 +56,7 @@ namespace Space {
             testTile = Content.Load<Texture2D>("Images/tile");
             asteroid = Content.Load<Texture2D>("Images/asteroid");
 
-            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2), 0);
+            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2), 0, 3);
             playerList.Add(player);
         }
 
@@ -91,36 +91,36 @@ namespace Space {
             if (keyW == true && keyS == false) {
                 if (keyW && keyA) {
                     player.rotation = (float)Math.PI * 1.75F;
-                    player.pos = new Vector2(player.pos.X - 1, player.pos.Y - 1);
+                    player.pos = new Vector2(player.pos.X - player.speed, player.pos.Y - player.speed);
                 } else if (keyW && keyD) {
                     player.rotation = (float)Math.PI * 0.25F;
-                    player.pos = new Vector2(player.pos.X + 1, player.pos.Y - 1);
+                    player.pos = new Vector2(player.pos.X + player.speed, player.pos.Y - player.speed);
                 } else {
                     player.rotation = 0;
-                    player.pos = new Vector2(player.pos.X, player.pos.Y - 1);
+                    player.pos = new Vector2(player.pos.X, player.pos.Y - player.speed);
                 }
             }
             if (keyS == true && keyW == false) {
                 if (keyS && keyA) {
                     player.rotation = (float)Math.PI * 1.25F;
-                    player.pos = new Vector2(player.pos.X - 1, player.pos.Y + 1);
+                    player.pos = new Vector2(player.pos.X - player.speed, player.pos.Y + player.speed);
                 } else if (keyS && keyD) {
                     player.rotation = (float)Math.PI * 0.75F;
-                    player.pos = new Vector2(player.pos.X + 1, player.pos.Y + 1);
+                    player.pos = new Vector2(player.pos.X + player.speed, player.pos.Y + player.speed);
                 } else {
                     player.rotation = (float)Math.PI;
-                    player.pos = new Vector2(player.pos.X, player.pos.Y + 1);
+                    player.pos = new Vector2(player.pos.X, player.pos.Y + player.speed);
                 }
             }
 
             if (keyA == true && keyW == false && keyS == false) {
                 player.rotation = (float)Math.PI * 1.5F;
-                player.pos = new Vector2(player.pos.X - 1, player.pos.Y);
+                player.pos = new Vector2(player.pos.X - player.speed, player.pos.Y);
             }
 
             if (keyD == true && keyW == false && keyS == false) {
                 player.rotation = (float)Math.PI * 0.5F;
-                player.pos = new Vector2(player.pos.X + 1, player.pos.Y);
+                player.pos = new Vector2(player.pos.X + player.speed, player.pos.Y);
             }
 
             cam.UpdateCamera(viewport);
@@ -138,7 +138,7 @@ namespace Space {
                 spriteBatch.Draw(obj.getImage(),
                     new Rectangle(obj.getXpos(), obj.getYpos(), 50, 50),
                     Color.White);
-                System.Diagnostics.Debug.WriteLine("Asteroid co-ord: " + obj.getXpos() + ", " + obj.getYpos() + ". ");
+                //System.Diagnostics.Debug.WriteLine("Asteroid co-ord: " + obj.getXpos() + ", " + obj.getYpos() + ". ");
             }
 
             foreach (PlayerShip ships in playerList) {
