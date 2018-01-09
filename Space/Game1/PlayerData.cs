@@ -38,5 +38,9 @@ namespace SpaceServer
 		public string outputAsString() {
             return "X: " + this.x + ", Y: " + this.y + ", rot: " + this.rot + "ID: " + this.id;
         }
+
+        public string dataString() {
+            return x.ToString() + "/" + y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString();
+        }
     }
 }

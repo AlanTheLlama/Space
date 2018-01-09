@@ -12,6 +12,7 @@ namespace SpaceServer {
         NetPeerConfiguration config;
         NetServer server;
         NetIncomingMessage message;
+        NetOutgoingMessage mOut;
         SpriteFont font;
         List<PlayerData> playerLocations;
 
@@ -52,7 +53,7 @@ namespace SpaceServer {
             serverStatus = "Server Status: " + server.ConnectionsCount;
             //System.Diagnostics.Debug.WriteLine(serverStatus);
             
-            while ((message = server.ReadMessage()) != null) {
+            while ((message = server.ReadMessage()) != null) {           //Reciever
                 switch (message.MessageType) {
                     case NetIncomingMessageType.Data:
                         splitter = new string[4] { "0", "1", "2", "3"};
@@ -90,6 +91,12 @@ namespace SpaceServer {
                             + message.MessageType);
                         break;
                 }
+            }
+
+            foreach(PlayerData pd in playerLocations) {          //Sender
+                mOut = server.CreateMessage();
+                mOut.Write(pd.dataString());
+                server.SendToAll(mOut, NetDeliveryMethod.ReliableOrdered);
             }
 
             base.Update(gameTime);
