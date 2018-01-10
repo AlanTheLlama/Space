@@ -20,6 +20,7 @@ namespace Space {
         NetIncomingMessage mail;
         NetOutgoingMessage msg;
         NetClient client;
+        AI bob;
 
         public float MAX_SPEED = 9;
 
@@ -70,6 +71,8 @@ namespace Space {
 
             player = new PlayerShip(new Vector2(world.SizeX / 2, world.SizeY / 2));
             playerList.Add(player);
+
+            bob = new AI(7500, 7500);
 
             viewport = GraphicsDevice.Viewport;
             cam = new Camera(viewport, player);
@@ -131,6 +134,9 @@ namespace Space {
                 player.resetRot();
             }
 
+            bob.nearby();
+            System.Diagnostics.Debug.WriteLine("Bob's Location: " + bob.pos.X.ToString() + ", " + bob.pos.Y.ToString());
+
             player.updatePosition(world);
             sendToServer(player);
             checkMail();
@@ -177,6 +183,8 @@ namespace Space {
             spriteBatch.Draw(asteroid, new Rectangle(50, 50, 50, 50), Color.White);
             spriteBatch.Draw(asteroid, new Rectangle(-50, 50, 100, 110), Color.White);
 
+            spriteBatch.Draw(ship, bob.pos, Color.White);
+
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -214,8 +222,8 @@ namespace Space {
                         System.Diagnostics.Debug.WriteLine(mail.ReadString());
                         break;
                     default:
-                        System.Diagnostics.Debug.WriteLine("SPAM MAIL: "
-                            + mail.MessageType);
+                        //System.Diagnostics.Debug.WriteLine("SPAM MAIL: "
+                        //    + mail.MessageType);
                         break;
                 }
             }

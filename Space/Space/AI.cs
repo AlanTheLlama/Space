@@ -12,8 +12,8 @@ namespace Space {
         public float MAX_SPEED = 4;
 
         public Vector2 pos; //Don't know if I need any of these?
-        public float speed;
-        public float acceleration;
+        public float speed = 1;
+        public float acceleration = 1;
 
         public AI (int x, int y) { //Creates a new AI at pos x, y
             this.pos = new Vector2(x, y);
@@ -26,6 +26,10 @@ namespace Space {
             {
                 this.speed = MAX_SPEED;
             }
+        }
+        
+        public void moveYo() {
+            this.pos = new Vector2(pos.X, pos.Y - 1);
         }
 
         public void brake() {
@@ -40,18 +44,21 @@ namespace Space {
             //If the player is within a 50x50 area return true
             //Game1.playerList;
             foreach (PlayerShip ships in Game1.playerList) {
-                if ((ships.pos.X <= (this.pos.X + 50) && ships.pos.X >= (this.pos.X - 50)) && (ships.pos.Y <= (this.pos.Y + 50) && ships.pos.Y >= (this.pos.Y - 50))) {
+                /*if ((ships.pos.X <= (this.pos.X + 50) && ships.pos.X >= (this.pos.X - 50)) && (ships.pos.Y <= (this.pos.Y + 50) && ships.pos.Y >= (this.pos.Y - 50))) {
                     return true;
-                }
+                }*/
+                if (new Rectangle((int)ships.pos.X - 50, (int)ships.pos.Y - 50, 100, 100).Contains(
+                    new Point((int)this.pos.X, (int)this.pos.Y))) return true;
             }
             return false;
         }
         public void nearby() {
             if (danger()) {
-                this.accelerate();
+                this.moveYo();
+                System.Diagnostics.Debug.WriteLine("DANGER!");
             }
             else if (!danger() && this.speed > 0) {
-                this.brake();
+                brake();
             }
         }
     }
