@@ -77,7 +77,13 @@ namespace Space
         public void thrust()
         {
             this.accelerate();
-            if (this.aimRotation != this.movRotation)
+            float rot = this.movRotation;
+            rot += (float)Math.PI;
+            if (rot >= 2 * Math.PI)
+            {
+                rot -= 2 * (float)Math.PI;
+            }
+            if (this.aimRotation != rot)
             {
                 this.turnBody();
             }
