@@ -13,11 +13,22 @@ namespace Space {
         GraphicsDeviceManager graphics;
         Viewport viewport;
         SpriteBatch spriteBatch;
+        SpriteFont font;
         Camera cam;
+
+        NetPeerConfiguration config;
+        NetIncomingMessage mail;
+        NetOutgoingMessage msg;
+        NetClient client;
+
+        public float MAX_SPEED = 6;
 
         World world;
 
         public List<PlayerShip> playerList;
+        char[] deliminators = { ',', ' ', '/' };
+        string[] splitter;
+        bool found;
 
         public static Texture2D ship;
         public static Texture2D testTile;
@@ -35,8 +46,9 @@ namespace Space {
             world = new World(15000, 15000);
             world.Generate(600, 1000, 50);
 
-            var config = new NetPeerConfiguration("Squad");
-            var client = new NetClient(config);
+            config = new NetPeerConfiguration("Squad");
+            client = new NetClient(config);
+
             client.Start();
             client.Connect(host: "127.0.0.1", port: 31579);
 
@@ -54,6 +66,7 @@ namespace Space {
             ship = Content.Load<Texture2D>("Images/ship");
             testTile = Content.Load<Texture2D>("Images/tile");
             asteroid = Content.Load<Texture2D>("Images/asteroid");
+            font = Content.Load<SpriteFont>("File");
 
             player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2));
             playerList.Add(player);
@@ -94,34 +107,29 @@ namespace Space {
             } else keyD = false;
 
             if (keyW == true && keyS == false) {
-                
+
             }
-            if (keyW == true)
-            {
-                player.thrust();
+            if (keyW == true) {
+                //accelerate(player);
             }
 
-            if (keyS == true)
-            {
-                player.brake();
+            if (keyS == true) {
+                //brake(player);
             }
 
-            if (keyD == true)
-            {
-                player.rotateRight();
+            if (keyD == true) {
+                //rotateRight(player);
             }
 
-            if (keyA == true)
-            {
-                player.rotateLeft();
+            if (keyA == true) {
+                //rotateLeft(player);
             }
 
-            if (player.speed == 0)
-            {
-                player.movRotation = -player.aimRotation;
-            }
-
-            player.updatePosition();
+            //updatePosition(player);
+            sendToServer(player);
+            checkMail();
+            //push!
+            if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
 
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
@@ -131,6 +139,7 @@ namespace Space {
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Viewport = viewport;
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            //spriteBatch.GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
 
@@ -141,15 +150,17 @@ namespace Space {
                 //System.Diagnostics.Debug.WriteLine("Asteroid co-ord: " + obj.getXpos() + ", " + obj.getYpos() + ". ");
             }
 
+            int i = 0;
             foreach (PlayerShip ships in playerList) {
                 spriteBatch.Draw(ship,
                     new Rectangle((int)ships.pos.X, (int)ships.pos.Y, ship.Width, ship.Height),
                     null,
                     Color.White,
-                    ships.aimRotation + (float) 0.5 * (float) Math.PI,
+                    ships.aimRotation + (float)0.5 * (float)Math.PI,
                     new Vector2(ship.Width / 2, ship.Height / 2),
                     SpriteEffects.None, 0);
-
+                spriteBatch.DrawString(font, playerList.Count.ToString() + ", " + playerList[i].identifier.ToString(), new Vector2(-50, i * 20), Color.Black);
+                i++;
             }
 
             //drawing some tiles to represent camera/ship movement against something that stays still
@@ -158,10 +169,50 @@ namespace Space {
             spriteBatch.Draw(testTile, new Rectangle(200, 0, 10, 10), Color.White);
             spriteBatch.Draw(testTile, new Rectangle(100, -300, 10, 10), Color.White);
             spriteBatch.Draw(asteroid, new Rectangle(50, 50, 50, 50), Color.White);
+            spriteBatch.Draw(asteroid, new Rectangle(-50, 50, 100, 110), Color.White);
 
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+        
+        public void sendToServer(PlayerShip ps) {
+            msg = client.CreateMessage();
+            msg.Write(ps.dataString());
+            client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+        }
+
+        public void checkMail() {
+            while ((mail = client.ReadMessage()) != null) {
+                switch (mail.MessageType) {
+                    case NetIncomingMessageType.Data:
+                        splitter = new string[4] { "0", "1", "2", "3" };
+                        splitter = mail.ReadString().ToString().Split(deliminators);
+
+                        found = false;
+                        for (int i = 0; i < playerList.Count; i++) {
+                            if (playerList[i].getID().ToString().Equals(splitter[3]) && splitter[3].Equals(player.getID().ToString()) == false) {
+                                playerList[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2]));
+                                found = true;
+                            }
+                        }
+
+                        if (!found && splitter[3].Equals(player.getID().ToString()) == false) playerList.Add(new PlayerShip(
+                              new Vector2(float.Parse(splitter[0]), float.Parse(splitter[1])), float.Parse(splitter[2]),
+                              int.Parse(splitter[3])));
+
+                        break;
+                    case NetIncomingMessageType.StatusChanged:
+                        break;
+                    case NetIncomingMessageType.DebugMessage:
+                        System.Diagnostics.Debug.WriteLine(mail.ReadString());
+                        break;
+                    default:
+                        System.Diagnostics.Debug.WriteLine("SPAM MAIL: "
+                            + mail.MessageType);
+                        break;
+                }
+            }
         }
     }
 }
