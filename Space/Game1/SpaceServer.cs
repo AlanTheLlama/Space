@@ -26,6 +26,7 @@ namespace SpaceServer {
         }
 
         protected override void Initialize() {
+            this.IsMouseVisible = true;
             config = new NetPeerConfiguration("Squad");
             config.Port = 31579;
             server = new NetServer(config);

@@ -132,7 +132,7 @@ namespace Space {
             updatePosition(player);
             sendToServer(player);
             checkMail();
-
+            //push!
             if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
 
             cam.UpdateCamera(viewport);
