@@ -37,7 +37,7 @@ namespace Space
 
         public PlayerShip(Vector2 vec, float rot, int id) {            //for other players
             pos = vec;
-            rotation = rot;
+            aimRotation = rot;
             identifier = id;
         }
 
@@ -45,14 +45,14 @@ namespace Space
             return identifier;
         }
         public float getRot() {
-            return this.rotation;
+            return this.aimRotation;
         }
         public string dataString() {
             return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString();
         }
         public void setCoords(float x, float y, float rot) {
             this.pos = new Vector2(x, y);
-            this.rotation = rot;
+            this.aimRotation = rot;
         }
 
         public void rotateRight()

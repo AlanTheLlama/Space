@@ -68,7 +68,7 @@ namespace Space {
             asteroid = Content.Load<Texture2D>("Images/asteroid");
             font = Content.Load<SpriteFont>("File");
 
-            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2), -((float)0.5 * ((float)Math.PI)), 1, (float)0.1, (float)0.4);
+            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2));
             playerList.Add(player);
 
             viewport = GraphicsDevice.Viewport;
@@ -107,29 +107,25 @@ namespace Space {
             } else keyD = false;
 
             if (keyW == true && keyS == false) {
-                
+
             }
-            if (keyW == true)
-            {
-                accelerate(player);
+            if (keyW == true) {
+                //accelerate(player);
             }
 
-            if (keyS == true)
-            {
-                brake(player);
+            if (keyS == true) {
+                //brake(player);
             }
 
-            if (keyD == true)
-            {
-                rotateRight(player);
+            if (keyD == true) {
+                //rotateRight(player);
             }
 
-            if (keyA == true)
-            {
-                rotateLeft(player);
+            if (keyA == true) {
+                //rotateLeft(player);
             }
 
-            updatePosition(player);
+            //updatePosition(player);
             sendToServer(player);
             checkMail();
             //push!
@@ -160,10 +156,10 @@ namespace Space {
                     new Rectangle((int)ships.pos.X, (int)ships.pos.Y, ship.Width, ship.Height),
                     null,
                     Color.White,
-                    ships.rotation + (float) 0.5 * (float) Math.PI,
+                    ships.aimRotation + (float)0.5 * (float)Math.PI,
                     new Vector2(ship.Width / 2, ship.Height / 2),
                     SpriteEffects.None, 0);
-                spriteBatch.DrawString(font, playerList.Count.ToString() + ", " + playerList[i].identifier.ToString(), new Vector2(-50, i*20), Color.Black);
+                spriteBatch.DrawString(font, playerList.Count.ToString() + ", " + playerList[i].identifier.ToString(), new Vector2(-50, i * 20), Color.Black);
                 i++;
             }
 
@@ -179,53 +175,6 @@ namespace Space {
 
             base.Draw(gameTime);
         }
-
-        public void rotateRight(PlayerShip ps)
-        {
-            ps.rotation = ps.rotation + ps.rotSpeed;
-            if (ps.rotation > 2 * ((float)Math.PI))
-            {
-                ps.rotation = ps.rotation - (2 * ((float)Math.PI));
-            }
-
-        }
-
-        public void rotateLeft(PlayerShip ps)
-        {
-            ps.rotation = ps.rotation - ps.rotSpeed;
-            if (ps.rotation < 0)
-            {
-                ps.rotation = ps.rotation + (2 * ((float)Math.PI));
-            }
-        }
-
-        public void accelerate(PlayerShip ps)
-        {
-            ps.speed += ps.acceleration;
-            if (ps.speed > MAX_SPEED)
-            {
-                ps.speed = MAX_SPEED;
-            }
-
-        }
-
-        public void brake(PlayerShip ps)
-        {
-            ps.speed -= ps.acceleration;
-            if (ps.speed < 0)
-            {
-                ps.speed = 0;
-            }
-        }
-
-        public void updatePosition(PlayerShip ps)
-        {
-            float x = ps.pos.X;
-            float y = ps.pos.Y;
-            x += ps.speed * (float) Math.Cos(ps.rotation);
-            y += ps.speed * (float) Math.Sin(ps.rotation);
-            ps.pos = new Vector2(x, y);
-        }
         
         public void sendToServer(PlayerShip ps) {
             msg = client.CreateMessage();
@@ -234,22 +183,22 @@ namespace Space {
         }
 
         public void checkMail() {
-            while ((mail = client.ReadMessage()) != null) { 
+            while ((mail = client.ReadMessage()) != null) {
                 switch (mail.MessageType) {
                     case NetIncomingMessageType.Data:
                         splitter = new string[4] { "0", "1", "2", "3" };
                         splitter = mail.ReadString().ToString().Split(deliminators);
 
                         found = false;
-                        for(int i = 0; i < playerList.Count; i++) {
-                            if(playerList[i].getID().ToString().Equals(splitter[3]) && splitter[3].Equals(player.getID().ToString()) == false) {
-                                playerList[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2])); //problem line
+                        for (int i = 0; i < playerList.Count; i++) {
+                            if (playerList[i].getID().ToString().Equals(splitter[3]) && splitter[3].Equals(player.getID().ToString()) == false) {
+                                playerList[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2]));
                                 found = true;
                             }
                         }
 
                         if (!found && splitter[3].Equals(player.getID().ToString()) == false) playerList.Add(new PlayerShip(
-                              new Vector2(float.Parse(splitter[0]), float.Parse(splitter[1])), float.Parse(splitter[2]), 
+                              new Vector2(float.Parse(splitter[0]), float.Parse(splitter[1])), float.Parse(splitter[2]),
                               int.Parse(splitter[3])));
 
                         break;
