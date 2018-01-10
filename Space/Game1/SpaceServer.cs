@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using System.Threading;
 using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -17,6 +19,9 @@ namespace SpaceServer {
         NetOutgoingMessage mOut;
         SpriteFont font;
         List<PlayerData> playerLocations;
+
+        TcpListener tcpListen;
+        Thread listenThread;
 
         Texture2D startButton;
 
@@ -34,9 +39,16 @@ namespace SpaceServer {
         protected override void Initialize() {
             this.IsMouseVisible = true;
             config = new NetPeerConfiguration("Squad");
-            config.BroadcastAddress = IPAddress.Parse("207.216.252.138");
+            config.EnableUPnP = true;
+            config.LocalAddress = IPAddress.Parse("192.168.1.244");
             config.Port = 31579;
             server = new NetServer(config);
+
+            tcpListen = new TcpListener(IPAddress.Any, 31579);
+            listenThread = new Thread(new ThreadStart(PutEarToDoor));
+            listenThread.Start();
+
+            System.Diagnostics.Debug.WriteLine("sys: " + config.LocalAddress + "\next: " + config.BroadcastAddress);
 
             base.Initialize();
         }
@@ -64,6 +76,10 @@ namespace SpaceServer {
 
             if(sBRect.Contains(mPos) && mState.LeftButton == ButtonState.Pressed && server.Status != NetPeerStatus.Starting && server.Status != NetPeerStatus.Running) {
                 server.Start();
+            }
+
+            if(server.Status == NetPeerStatus.Running) {
+
             }
 
             serverStatus = "Server Status: " + server.ConnectionsCount;
@@ -116,6 +132,46 @@ namespace SpaceServer {
             }
 
             base.Update(gameTime);
+        }
+
+        public void PutEarToDoor() {
+            this.tcpListen.Start();
+            while (true) {
+                TcpClient client = this.tcpListen.AcceptTcpClient();
+
+                Thread clientThread = new Thread(new ParameterizedThreadStart(TalkToTheHand));
+                clientThread.Start(client);
+            }
+        }
+
+        public void TalkToTheHand(object client) {
+            TcpClient tcpClient = (TcpClient)client;
+            NetworkStream clientStream = tcpClient.GetStream();
+
+            byte[] message = new byte[4096];
+            int bytesRead;
+
+            while (true) {
+                bytesRead = 0;
+
+                try {
+                    bytesRead = clientStream.Read(message, 0, 4096);
+                } catch {
+                    System.Diagnostics.Debug.WriteLine("Neighbour was an asshole. ");
+                    break;
+                }
+
+                if (bytesRead == 0) {
+                    System.Diagnostics.Debug.WriteLine("Neighbour ditched us. ");
+                    break;
+                }
+
+                //message has successfully been received
+                ASCIIEncoding encoder = new ASCIIEncoding();
+                System.Diagnostics.Debug.WriteLine(encoder.GetString(message, 0, bytesRead));
+            }
+
+            tcpClient.Close();
         }
         
         protected override void Draw(GameTime gameTime) {
