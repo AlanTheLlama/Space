@@ -49,6 +49,7 @@ namespace Space {
 
             config = new NetPeerConfiguration("Squad");
             client = new NetClient(config);
+            config.EnableUPnP = true;
 
             client.Start();
             client.Connect(host: "207.216.252.138", port: 31579);
