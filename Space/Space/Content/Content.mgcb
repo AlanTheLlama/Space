@@ -32,6 +32,18 @@
 /processorParam:TextureFormat=Color
 /build:Images/asteroid.png
 
+#begin Images/enemy.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/enemy.png
+
 #begin Images/ship.png
 /importer:TextureImporter
 /processor:TextureProcessor
