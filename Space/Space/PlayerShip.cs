@@ -136,9 +136,18 @@ namespace Space
             }
         }
 
-        public void updatePosition()
+        public void updatePosition(World w)
         {
-            this.pos = new Vector2(this.pos.X - (this.speed * (float)Math.Cos(this.movRotation)), this.pos.Y - (this.speed * (float)Math.Sin(this.movRotation)));
+            Vector2 vec = new Vector2(this.pos.X - (this.speed * (float)Math.Cos(this.movRotation)), this.pos.Y - (this.speed * (float)Math.Sin(this.movRotation)));
+            float x = this.pos.X;
+            float y = this.pos.Y;
+            if (vec.X >= 0 || vec.X <= w.SizeX) {
+                x = vec.X;
+            }
+            if (vec.Y >= 0 || vec.Y <= w.SizeX) {
+                y = vec.Y;
+            }
+            this.pos = new Vector2(x, y);
         }
 
         public void resetRot()

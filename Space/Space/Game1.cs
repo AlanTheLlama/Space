@@ -23,7 +23,7 @@ namespace Space {
 
         public float MAX_SPEED = 9;
 
-        World world;
+        public World world;
 
         public List<PlayerShip> playerList;
         char[] deliminators = { ',', ' ', '/' };
@@ -68,7 +68,7 @@ namespace Space {
             asteroid = Content.Load<Texture2D>("Images/asteroid");
             font = Content.Load<SpriteFont>("File");
 
-            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2));
+            player = new PlayerShip(new Vector2(world.SizeX / 2, world.SizeY / 2));
             playerList.Add(player);
 
             viewport = GraphicsDevice.Viewport;
@@ -131,7 +131,7 @@ namespace Space {
                 player.resetRot();
             }
 
-            player.updatePosition();
+            player.updatePosition(world);
             sendToServer(player);
             checkMail();
             //push!

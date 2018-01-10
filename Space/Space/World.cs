@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 
 namespace Space {
-    class World {
+    public class World {
         //world generation??
         public int SizeX { get; set; }
         public int SizeY { get; set; }
