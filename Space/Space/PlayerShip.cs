@@ -105,10 +105,18 @@ namespace Space
                 if (rot < Math.PI)
                 {
                     this.movRotation += this.curveSpeed;
+                    if (this.movRotation > 2 * (float)Math.PI)
+                    {
+                        this.movRotation -= 2 * (float)Math.PI;
+                    }
                 }
                 else
                 {
                     this.movRotation -= this.curveSpeed;
+                    if (this.movRotation < 0)
+                    {
+                        this.movRotation += 2 * (float)Math.PI;
+                    }
                 }
             }
         }
@@ -125,6 +133,16 @@ namespace Space
         public void updatePosition()
         {
             this.pos = new Vector2(this.pos.X - (this.speed * (float)Math.Cos(this.movRotation)), this.pos.Y - (this.speed * (float)Math.Sin(this.movRotation)));
+        }
+
+        public void resetRot()
+        {
+            this.movRotation = this.aimRotation;
+            this.movRotation += (float)Math.PI;
+            if (this.movRotation > 2 * Math.PI)
+            {
+                this.movRotation -= 2 * (float)Math.PI;
+            }
         }
     }
 }

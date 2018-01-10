@@ -21,7 +21,7 @@ namespace Space {
         NetOutgoingMessage msg;
         NetClient client;
 
-        public float MAX_SPEED = 6;
+        public float MAX_SPEED = 9;
 
         World world;
 
@@ -121,8 +121,14 @@ namespace Space {
                 player.rotateRight();
             }
 
-            if (keyA == true) {
+            if (keyA == true)
+            {
                 player.rotateLeft();
+            }
+
+            if (player.speed < 0.2)
+            {
+                player.resetRot();
             }
 
             player.updatePosition();
