@@ -15,8 +15,6 @@ namespace Space {
         SpriteBatch spriteBatch;
         Camera cam;
 
-        public float MAX_SPEED = 6;
-
         World world;
 
         public List<PlayerShip> playerList;
@@ -57,7 +55,7 @@ namespace Space {
             testTile = Content.Load<Texture2D>("Images/tile");
             asteroid = Content.Load<Texture2D>("Images/asteroid");
 
-            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2), -((float)0.5 * ((float)Math.PI)), 1, (float)0.1, (float)0.4);
+            player = new PlayerShip(new Vector2(-ship.Width / 2, -ship.Height / 2));
             playerList.Add(player);
 
             viewport = GraphicsDevice.Viewport;
@@ -100,25 +98,30 @@ namespace Space {
             }
             if (keyW == true)
             {
-                accelerate(player);
+                player.thrust();
             }
 
             if (keyS == true)
             {
-                brake(player);
+                player.brake();
             }
 
             if (keyD == true)
             {
-                rotateRight(player);
+                player.rotateRight();
             }
 
             if (keyA == true)
             {
-                rotateLeft(player);
+                player.rotateLeft();
             }
 
-            updatePosition(player);
+            if (player.speed == 0)
+            {
+                player.movRotation = -player.aimRotation;
+            }
+
+            player.updatePosition();
 
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
@@ -143,7 +146,7 @@ namespace Space {
                     new Rectangle((int)ships.pos.X, (int)ships.pos.Y, ship.Width, ship.Height),
                     null,
                     Color.White,
-                    ships.rotation + (float) 0.5 * (float) Math.PI,
+                    ships.aimRotation + (float) 0.5 * (float) Math.PI,
                     new Vector2(ship.Width / 2, ship.Height / 2),
                     SpriteEffects.None, 0);
 
@@ -159,53 +162,6 @@ namespace Space {
             spriteBatch.End();
 
             base.Draw(gameTime);
-        }
-
-        public void rotateRight(PlayerShip ps)
-        {
-            ps.rotation = ps.rotation + ps.rotSpeed;
-            if (ps.rotation > 2 * ((float)Math.PI))
-            {
-                ps.rotation = ps.rotation - (2 * ((float)Math.PI));
-            }
-
-        }
-
-        public void rotateLeft(PlayerShip ps)
-        {
-            ps.rotation = ps.rotation - ps.rotSpeed;
-            if (ps.rotation < 0)
-            {
-                ps.rotation = ps.rotation + (2 * ((float)Math.PI));
-            }
-        }
-
-        public void accelerate(PlayerShip ps)
-        {
-            ps.speed += ps.acceleration;
-            if (ps.speed > MAX_SPEED)
-            {
-                ps.speed = MAX_SPEED;
-            }
-
-        }
-
-        public void brake(PlayerShip ps)
-        {
-            ps.speed -= ps.acceleration;
-            if (ps.speed < 0)
-            {
-                ps.speed = 0;
-            }
-        }
-
-        public void updatePosition(PlayerShip ps)
-        {
-            float x = ps.pos.X;
-            float y = ps.pos.Y;
-            x += ps.speed * (float) Math.Cos(ps.rotation);
-            y += ps.speed * (float) Math.Sin(ps.rotation);
-            ps.pos = new Vector2(x, y);
         }
     }
 }
