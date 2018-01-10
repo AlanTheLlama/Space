@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
 using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -33,7 +34,7 @@ namespace SpaceServer {
         protected override void Initialize() {
             this.IsMouseVisible = true;
             config = new NetPeerConfiguration("Squad");
-            config.BroadcastAddress = IPAddress.Parse("192.168.1.244");
+            config.BroadcastAddress = IPAddress.Parse("207.216.252.138");
             config.Port = 31579;
             server = new NetServer(config);
 
