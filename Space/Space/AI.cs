@@ -47,7 +47,7 @@ namespace Space {
                 /*if ((ships.pos.X <= (this.pos.X + 50) && ships.pos.X >= (this.pos.X - 50)) && (ships.pos.Y <= (this.pos.Y + 50) && ships.pos.Y >= (this.pos.Y - 50))) {
                     return true;
                 }*/
-                if (new Rectangle((int)ships.pos.X - 50, (int)ships.pos.Y - 50, 100, 100).Contains(
+                if (new Rectangle((int)ships.pos.X - 171, (int)ships.pos.Y - 191, 171, 191).Contains(
                     new Point((int)this.pos.X, (int)this.pos.Y))) return true;
             }
             return false;

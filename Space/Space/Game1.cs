@@ -34,6 +34,7 @@ namespace Space {
         public static Texture2D ship;
         public static Texture2D testTile;
         public static Texture2D asteroid;
+        public static Texture2D enemy;
 
         public static PlayerShip player;
 
@@ -67,6 +68,7 @@ namespace Space {
             ship = Content.Load<Texture2D>("Images/ship");
             testTile = Content.Load<Texture2D>("Images/tile");
             asteroid = Content.Load<Texture2D>("Images/asteroid");
+            enemy = Content.Load<Texture2D>("Images/enemy");
             font = Content.Load<SpriteFont>("File");
 
             player = new PlayerShip(new Vector2(world.SizeX / 2, world.SizeY / 2));
@@ -183,7 +185,7 @@ namespace Space {
             spriteBatch.Draw(asteroid, new Rectangle(50, 50, 50, 50), Color.White);
             spriteBatch.Draw(asteroid, new Rectangle(-50, 50, 100, 110), Color.White);
 
-            spriteBatch.Draw(ship, bob.pos, Color.White);
+            spriteBatch.Draw(enemy, bob.pos, Color.White);
 
             spriteBatch.End();
 
