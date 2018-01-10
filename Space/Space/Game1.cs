@@ -110,25 +110,25 @@ namespace Space {
 
             }
             if (keyW == true) {
-                //accelerate(player);
+                player.thrust();
             }
 
             if (keyS == true) {
-                //brake(player);
+                player.brake();
             }
 
             if (keyD == true) {
-                //rotateRight(player);
+                player.rotateRight();
             }
 
             if (keyA == true) {
-                //rotateLeft(player);
+                player.rotateLeft();
             }
 
-            //updatePosition(player);
+            player.updatePosition();
             sendToServer(player);
             checkMail();
-            
+            //push!
             if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
 
             cam.UpdateCamera(viewport);
