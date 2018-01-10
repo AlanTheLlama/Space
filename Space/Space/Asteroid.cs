@@ -22,6 +22,10 @@ namespace Space {
             return y;
         }
 
+        public float getRot() {
+            return 0;
+        }
+
         public Asteroid(int x, int y) {
             this.x = x;
             this.y = y;

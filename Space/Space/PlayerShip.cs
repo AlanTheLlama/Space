@@ -19,6 +19,8 @@ namespace Space
         public float curveSpeed;
         public float acceleration;
         public bool initialized;
+        public int identifier;
+        Random r = new Random();
 
         public PlayerShip(Vector2 vec)
         {
@@ -30,6 +32,27 @@ namespace Space
             this.curveSpeed = (float)0.05;
             this.acceleration = (float)0.4;
             this.initialized = true;
+            this.identifier = r.Next(0, 1000000);
+        }
+
+        public PlayerShip(Vector2 vec, float rot, int id) {            //for other players
+            pos = vec;
+            rotation = rot;
+            identifier = id;
+        }
+
+        public int getID() {
+            return identifier;
+        }
+        public float getRot() {
+            return this.rotation;
+        }
+        public string dataString() {
+            return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString();
+        }
+        public void setCoords(float x, float y, float rot) {
+            this.pos = new Vector2(x, y);
+            this.rotation = rot;
         }
 
         public void rotateRight()

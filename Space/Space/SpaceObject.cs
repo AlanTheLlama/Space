@@ -10,5 +10,6 @@ namespace Space {
         Texture2D getImage();         //not worth much now but setting this up for future
         int getXpos();
         int getYpos();
+        float getRot();
     }
 }
