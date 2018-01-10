@@ -16,6 +16,10 @@ namespace SpaceServer {
         SpriteFont font;
         List<PlayerData> playerLocations;
 
+        Texture2D startButton;
+
+        Rectangle sBRect;
+
         string[] splitter;
         char[] deliminators = { ',', ' ', '/' };
         string serverStatus;
@@ -31,16 +35,18 @@ namespace SpaceServer {
             config.Port = 31579;
             server = new NetServer(config);
 
-            server.Start();
-
-            playerLocations = new List<PlayerData>();
-
             base.Initialize();
         }
 
         protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("File");
+
+            startButton = Content.Load<Texture2D>("startButton");
+
+            sBRect = new Rectangle(10, GraphicsDevice.PresentationParameters.Bounds.Height - 30, 50, 20);
+
+            playerLocations = new List<PlayerData>();
         }
         
         protected override void UnloadContent() {
@@ -50,6 +56,12 @@ namespace SpaceServer {
         protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+            var mState = Mouse.GetState();
+            var mPos = new Point(mState.X, mState.Y);
+
+            if(sBRect.Contains(mPos) && mState.LeftButton == ButtonState.Pressed && server.Status != NetPeerStatus.Starting && server.Status != NetPeerStatus.Running) {
+                server.Start();
+            }
 
             serverStatus = "Server Status: " + server.ConnectionsCount;
             //System.Diagnostics.Debug.WriteLine(serverStatus);
@@ -113,6 +125,13 @@ namespace SpaceServer {
                 spriteBatch.DrawString(font, pd.outputAsString(), new Vector2(10, (i * 20)), Color.Black);
                 i++;
             }
+
+            //text
+            spriteBatch.DrawString(font, "Status: " + server.Status.ToString(), new Vector2(10, 10), Color.White);
+            
+            //buttons
+            spriteBatch.Draw(startButton, sBRect, Color.White);
+
             spriteBatch.End();
 
             base.Draw(gameTime);
