@@ -25,7 +25,7 @@ namespace Space {
 
         World world;
 
-        public List<PlayerShip> playerList;
+        static public List<PlayerShip> playerList; //TURNED THIS TO STATIC
         char[] deliminators = { ',', ' ', '/' };
         string[] splitter;
         bool found;
