@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -21,11 +23,15 @@ namespace Space {
         NetPeerConfiguration config;
         NetIncomingMessage mail;
         NetOutgoingMessage msg;
-        NetClient client;
+        //NetClient client;
         //TCP
         TcpClient clientTCP;
-        DnsEndPoint serverEP;
+        TcpClient client;
+        IPEndPoint serverEP;
         IPHostEntry ipHostInfo;
+
+        StreamReader _sReader;
+        StreamWriter _sWriter;
 
         AI bob;
 
@@ -43,6 +49,8 @@ namespace Space {
         public static Texture2D asteroid;
         public static Texture2D enemy;
 
+        bool connected = false;
+
         public static PlayerShip player;
 
         public Game1() {
@@ -55,23 +63,22 @@ namespace Space {
             world.Generate(600, 1000, 50);
 
             config = new NetPeerConfiguration("Squad");
-            client = new NetClient(config);
+            //client = new NetClient(config);
             config.EnableUPnP = true;
 
             //TCP
-            clientTCP = new TcpClient();
-            serverEP = new DnsEndPoint("frankensquad.zapto.org", 31579);
-            ipHostInfo = new IPHostEntry();
-            var res = Dns.GetHostEntry("frankensquad.zapto.org").AddressList;
+            /*clientTCP = new TcpClient();
+            serverEP = new IPEndPoint(IPAddress.Parse("207.216.252.138"), 31579);
+            ipHostInfo = new IPHostEntry();*/
+            //var res = Dns.GetHostEntry("frankensquad.zapto.org").AddressList;
+            //System.Diagnostics.Debug.WriteLine("HOST ENTRY:" + res);
 
-            System.Diagnostics.Debug.WriteLine(res);
-
-            System.Diagnostics.Debug.WriteLine(ipHostInfo.AddressList);
+            //System.Diagnostics.Debug.WriteLine(ipHostInfo.AddressList);
             
             //END TCP
 
-            client.Start();
-            client.Connect(host: "207.216.252.138", port: 31579);
+            //client.Start();
+            //client.Connect(host: "207.216.252.138", port: 31579);
 
             base.Initialize();
         }
@@ -103,10 +110,13 @@ namespace Space {
             // TODO: Unload any non ContentManager content here
         }
 
-        //apologies for mild overcomplication on movementlol
         protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) {
                 Exit();
+            }
+
+            if(Keyboard.GetState().IsKeyDown(Keys.Enter)) {
+                connectToServer();
             }
 
             bool keyW = false;   //these are necessary for angling the sprites when two keys are pressed,
@@ -156,16 +166,24 @@ namespace Space {
             }
 
             bob.nearby();
-            //System.Diagnostics.Debug.WriteLine("Bob's Location: " + bob.pos.X.ToString() + ", " + bob.pos.Y.ToString());
 
             player.updatePosition(world);
-            sendToServer(player);
-            checkMail();
+            //sendToServer(player);
+            //checkMail();
             //push!
-            if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
+            //if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
 
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
+
+            /*if (!clientTCP.Connected) {
+                System.Diagnostics.Debug.WriteLine("Attempting to connect to 207.216.252.138...");
+                try {
+                    clientTCP.Connect(serverEP);
+                } catch (System.Net.Sockets.SocketException ex) {
+                    System.Diagnostics.Debug.WriteLine("Failed to connect: " + ex);
+                }
+            } else if (clientTCP.Connected) System.Diagnostics.Debug.WriteLine("Connected!");*/
         }
 
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
@@ -180,7 +198,6 @@ namespace Space {
                 spriteBatch.Draw(obj.getImage(),
                     new Rectangle(obj.getXpos(), obj.getYpos(), 50, 50),
                     Color.White);
-                //System.Diagnostics.Debug.WriteLine("Asteroid co-ord: " + obj.getXpos() + ", " + obj.getYpos() + ". ");
             }
 
             int i = 0;
@@ -211,13 +228,62 @@ namespace Space {
             base.Draw(gameTime);
         }
         
-        public void sendToServer(PlayerShip ps) {
-            msg = client.CreateMessage();
-            msg.Write(ps.dataString());
-            client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+        public void connectToServer() {
+            try {
+                client = new TcpClient();
+                ASCIIEncoding encoder = new ASCIIEncoding();
+
+                client.Connect("192.168.1.244", 31579);
+                //System.Diagnostics.Debug.WriteLine("Connected");
+
+                /*Stream reader = client.GetStream();
+                Stream writer = client.GetStream();
+                byte[] b = encoder.GetBytes("Client sent message to server!");
+                reader.Write(b, 0, b.Length);*/
+            } catch {
+                System.Diagnostics.Debug.WriteLine("Connection Failed");
+            }
         }
 
-        public void checkMail() {
+        public void HandleCommunication() {
+            _sReader = new StreamReader(client.GetStream(), Encoding.ASCII);
+            _sWriter = new StreamWriter(client.GetStream(), Encoding.ASCII);
+
+            connected = true;
+            String sData = null;
+            while (connected) {
+                Console.Write("Message from client");
+                sData = Console.ReadLine();
+
+                _sWriter.WriteLine(player.dataString());    //sending
+                _sWriter.Flush();
+
+                String sDataIncoming = _sReader.ReadLine(); //recieving
+                splitter = new string[4] { "0", "1", "2", "3" };
+                splitter = mail.ReadString().ToString().Split(deliminators);
+
+                found = false;
+                for (int i = 0; i < playerList.Count; i++) {
+                    if (playerList[i].getID().ToString().Equals(splitter[3]) && splitter[3].Equals(player.getID().ToString()) == false) {
+                        playerList[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2]));
+                        found = true;
+                    }
+                }
+
+                if (!found && splitter[3].Equals(player.getID().ToString()) == false) playerList.Add(new PlayerShip(
+                      new Vector2(float.Parse(splitter[0]), float.Parse(splitter[1])), float.Parse(splitter[2]),
+                      int.Parse(splitter[3])));
+                System.Diagnostics.Debug.WriteLine("Added player");
+            }
+        }
+
+        public void sendToServer(PlayerShip ps) {
+            //msg = client.CreateMessage();
+         //   msg.Write(ps.dataString());
+        //    client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+        }
+
+       /* public void checkMail() {
             while ((mail = client.ReadMessage()) != null) {
                 switch (mail.MessageType) {
                     case NetIncomingMessageType.Data:
@@ -248,6 +314,6 @@ namespace Space {
                         break;
                 }
             }
-        }
+        }*/
     }
 }

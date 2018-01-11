@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -21,8 +22,9 @@ namespace SpaceServer {
         List<PlayerData> playerLocations;
 
         TcpListener tcpListen;
+        TcpListener listener;
         Thread listenThread;
-
+        
         Texture2D startButton;
 
         Rectangle sBRect;
@@ -30,6 +32,7 @@ namespace SpaceServer {
         string[] splitter;
         char[] deliminators = { ',', ' ', '/' };
         string serverStatus;
+        bool running;
 
         public SpaceServer() {
             graphics = new GraphicsDeviceManager(this);
@@ -38,23 +41,36 @@ namespace SpaceServer {
 
         protected override void Initialize() {
             this.IsMouseVisible = true;
-            config = new NetPeerConfiguration("Squad");
+            /*config = new NetPeerConfiguration("Squad");
             config.EnableUPnP = true;
             config.LocalAddress = IPAddress.Parse("192.168.1.244");
             config.Port = 31579;
-            server = new NetServer(config);
+            //server = new NetServer(config);
 
-            tcpListen = new TcpListener(IPAddress.Any, 31579);
+            tcpListen = new TcpListener(IPAddress.Parse("192.168.1.244"), 31579);
             listenThread = new Thread(new ThreadStart(PutEarToDoor));
             listenThread.Start();
 
-            System.Diagnostics.Debug.WriteLine("sys: " + config.LocalAddress + "\next: " + config.BroadcastAddress);
-
+            System.Diagnostics.Debug.WriteLine("sys: " + listenThread.IsAlive);
+            */
             base.Initialize();
+
+            IPAddress IP = IPAddress.Parse("192.168.1.244");
+
+            listener = new TcpListener(IP, 31579);
+
+            System.Diagnostics.Debug.WriteLine("Starting listener");
+            listener.Start();
+            running = true;
+            System.Diagnostics.Debug.WriteLine("Started listener, looping through clients");
+
+            Thread listenerThread = new Thread(new ThreadStart(() => LoopClients()));
+            System.Diagnostics.Debug.WriteLine("Started thread");
         }
 
         protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            System.Diagnostics.Debug.WriteLine("SpriteBatch started");
             font = Content.Load<SpriteFont>("File");
 
             startButton = Content.Load<Texture2D>("startButton");
@@ -74,18 +90,33 @@ namespace SpaceServer {
             var mState = Mouse.GetState();
             var mPos = new Point(mState.X, mState.Y);
 
-            if(sBRect.Contains(mPos) && mState.LeftButton == ButtonState.Pressed && server.Status != NetPeerStatus.Starting && server.Status != NetPeerStatus.Running) {
-                server.Start();
+            /*if (sBRect.Contains(mPos) && mState.LeftButton == ButtonState.Pressed && server.Status != NetPeerStatus.Starting && server.Status != NetPeerStatus.Running) {
+                //server.Start();
+            }*/
+
+            /*System.Diagnostics.Debug.WriteLine("Listening for client");
+            TcpClient newClient = listener.AcceptTcpClient();
+            System.Diagnostics.Debug.WriteLine("Accepted client at " + newClient.Client.ToString());
+
+            Thread t = new Thread(new ParameterizedThreadStart(TalkToTheHand));
+            t.Start(newClient);
+            Socket s = listener.AcceptSocket();
+
+            System.Diagnostics.Debug.WriteLine("Socket accepted from: " + s.RemoteEndPoint);
+
+            byte[] b = new byte[512];
+            int k = s.Receive(b);
+
+            for (int i = 0; i < k; i++) {
+                System.Diagnostics.Debug.Write(Convert.ToChar(b[i]));
             }
 
-            if(server.Status == NetPeerStatus.Running) {
-
-            }
-
-            serverStatus = "Server Status: " + server.ConnectionsCount;
+            s.Close();
+            */
+            //serverStatus = "Server Status: " + server.ConnectionsCount;
             //System.Diagnostics.Debug.WriteLine(serverStatus);
-            
-            while ((message = server.ReadMessage()) != null) {           //Reciever
+
+            /*while ((message = server.ReadMessage()) != null) {           //Reciever
                 switch (message.MessageType) {
                     case NetIncomingMessageType.Data:
                         splitter = new string[4] { "0", "1", "2", "3"};
@@ -124,19 +155,21 @@ namespace SpaceServer {
                         break;
                 }
             }
-
-            foreach(PlayerData pd in playerLocations) {          //Sender
+            */
+            /*foreach(PlayerData pd in playerLocations) {          //Sender
                 mOut = server.CreateMessage();
                 mOut.Write(pd.dataString());
                 server.SendToAll(mOut, NetDeliveryMethod.ReliableOrdered);
-            }
+            }*/
 
+            //PutEarToDoor();
             base.Update(gameTime);
         }
 
         public void PutEarToDoor() {
             this.tcpListen.Start();
             while (true) {
+                System.Diagnostics.Debug.WriteLine("Listening");
                 TcpClient client = this.tcpListen.AcceptTcpClient();
 
                 Thread clientThread = new Thread(new ParameterizedThreadStart(TalkToTheHand));
@@ -144,16 +177,78 @@ namespace SpaceServer {
             }
         }
 
+        public void LoopClients() {
+            while (running) {
+                System.Diagnostics.Debug.WriteLine("Waiting for client..");
+                // wait for client connection
+                TcpClient newClient = listener.AcceptTcpClient();
+                System.Diagnostics.Debug.WriteLine("Found client");
+                // client found.
+                // create a thread to handle communication
+                Thread t = new Thread(new ParameterizedThreadStart(HandleClient));
+                t.Start(newClient);
+            }
+        }
+
+        public void HandleClient(object obj) {
+            // retrieve client from parameter passed to thread
+            TcpClient client = (TcpClient)obj;
+            System.Diagnostics.Debug.WriteLine("Handling client");
+
+            // sets two streams
+            StreamWriter sWriter = new StreamWriter(client.GetStream(), Encoding.ASCII);
+            StreamReader sReader = new StreamReader(client.GetStream(), Encoding.ASCII);
+            // you could use the NetworkStream to read and write, 
+            // but there is no forcing flush, even when requested
+
+            Boolean bClientConnected = true;
+            String sData = null;
+
+            while (bClientConnected) {
+                // reads from stream
+                sData = sReader.ReadLine();
+
+                splitter = new string[4] { "0", "1", "2", "3" };
+                splitter = sData.Split(deliminators);
+
+                //System.Diagnostics.Debug.WriteLine("ID REPORTED: " + splitter[3]);
+
+                bool exists = false;
+                System.Diagnostics.Debug.WriteLine("Splitter length: " + splitter.Length);
+                System.Diagnostics.Debug.WriteLine("PLAYER LIST SIZE: " + playerLocations.Count);
+                for (int i = 0; i < playerLocations.Count; i++) {
+                    if (playerLocations[i].getID().ToString().Equals(splitter[3])) {
+                        playerLocations[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2]));
+                        exists = true;
+                    }
+                }
+                if (!exists) {
+                    System.Diagnostics.Debug.WriteLine("PLAYER LIST SIZE: " + playerLocations.Count);
+                    playerLocations.Add(new PlayerData(
+                        float.Parse(splitter[0]),
+                        float.Parse(splitter[1]),
+                        float.Parse(splitter[2]),
+                        int.Parse(splitter[3])));
+                }
+
+                foreach (PlayerData pd in playerLocations) {
+                    sWriter.WriteLine(pd.dataString());
+                    sWriter.Flush();
+                }
+            }
+        }
+
         public void TalkToTheHand(object client) {
             TcpClient tcpClient = (TcpClient)client;
             NetworkStream clientStream = tcpClient.GetStream();
+            ASCIIEncoding encoder = new ASCIIEncoding();
 
+            byte[] buffer = encoder.GetBytes("Server sends message to client!");
             byte[] message = new byte[4096];
             int bytesRead;
 
             while (true) {
                 bytesRead = 0;
-
                 try {
                     bytesRead = clientStream.Read(message, 0, 4096);
                 } catch {
@@ -167,7 +262,6 @@ namespace SpaceServer {
                 }
 
                 //message has successfully been received
-                ASCIIEncoding encoder = new ASCIIEncoding();
                 System.Diagnostics.Debug.WriteLine(encoder.GetString(message, 0, bytesRead));
             }
 
@@ -186,7 +280,7 @@ namespace SpaceServer {
             }
 
             //text
-            spriteBatch.DrawString(font, "Status: " + server.Status.ToString(), new Vector2(10, 10), Color.White);
+            spriteBatch.DrawString(font, "Status: " + playerLocations.Count, new Vector2(10, 10), Color.White);
             
             //buttons
             spriteBatch.Draw(startButton, sBRect, Color.White);

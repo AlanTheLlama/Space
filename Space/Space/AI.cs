@@ -55,7 +55,7 @@ namespace Space {
         public void nearby() {
             if (danger()) {
                 this.moveYo();
-                System.Diagnostics.Debug.WriteLine("DANGER!");
+                //System.Diagnostics.Debug.WriteLine("DANGER!");
             }
             else if (!danger() && this.speed > 0) {
                 brake();
