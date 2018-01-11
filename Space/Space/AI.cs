@@ -17,6 +17,7 @@ namespace Space {
         public float changeX;
         public float changeY;
         public float dist;
+
         public AI (int x, int y) { //Creates a new AI at pos x, y
             this.pos = new Vector2(x, y);
             this.acceleration = (float)0.3;
@@ -43,16 +44,18 @@ namespace Space {
         }
 
         public bool danger() {
-            foreach (PlayerShip ships in Game1.playerList) {
-                changeX = Math.Abs(ships.pos.X - this.pos.X);
-                changeY = Math.Abs(ships.pos.Y - this.pos.Y);
-                dist = (float)Math.Sqrt(((changeX * changeX) + (changeY * changeY)));
-                if (dist <= 200) {
-                    return true;
+            foreach (MovingObject mo in Game1.movingObjects) {
+                if (mo.getType() == 1) {
+                    changeX = Math.Abs(mo.getPos().X - this.pos.X);
+                    changeY = Math.Abs(mo.getPos().Y - this.pos.Y);
+                    dist = (float)Math.Sqrt(((changeX * changeX) + (changeY * changeY)));
+                    if (dist <= 200) {
+                        return true;
+                    }
+                    /*
+                    if (new Rectangle((int)ships.pos.X - 171, (int)ships.pos.Y - 191, 171, 191).Contains(
+                        new Point((int)this.pos.X, (int)this.pos.Y))) return true; */
                 }
-                /*
-                if (new Rectangle((int)ships.pos.X - 171, (int)ships.pos.Y - 191, 171, 191).Contains(
-                    new Point((int)this.pos.X, (int)this.pos.Y))) return true; */
             }
             return false;
         }
