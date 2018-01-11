@@ -92,8 +92,8 @@ namespace Space
             if (left > 2 * Math.PI) {
                 left -= 2 * (float)Math.PI;
             }
-            this.velocity.X = this.velocity.X + (float)Math.Cos(left) * this.forwardForce / this.mass;
-            this.velocity.Y = this.velocity.Y + (float)Math.Sin(left) * this.forwardForce / this.mass;
+            this.velocity.X = this.velocity.X + (float)Math.Cos(left) * this.sideForce / this.mass;
+            this.velocity.Y = this.velocity.Y + (float)Math.Sin(left) * this.sideForce / this.mass;
             if (this.getSpeed() > MAX_SPEED) {
                 this.scaleSpeed();
             }
