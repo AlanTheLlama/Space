@@ -6,6 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Space {
+
+    public enum ObjectType {
+        PLAYER,
+        AI,
+        PROJECTILE
+    };
+
     public interface MovingObject {
 
         void updatePosition(World w);
@@ -14,7 +21,7 @@ namespace Space {
 
         Vector2 getPos();
 
-        int getType();
+        ObjectType getType();
 
         float getAngle();
 

@@ -32,6 +32,9 @@ namespace Space
         public float weapons;
         public float weaponCooldown;
 
+        //DEFINITION
+        private ObjectType type;
+
         public PlayerShip(Vector2 vec)
         {
             this.pos = vec;
@@ -51,6 +54,8 @@ namespace Space
             this.shield = 2;
             this.weapons = 8;
             this.weaponCooldown = 300;
+
+            type = ObjectType.PLAYER;
         }
 
         public PlayerShip(Vector2 vec, float rot, int id) {            //for other players
@@ -185,8 +190,8 @@ namespace Space
             return this.pos;
         }
 
-        public int getType() {
-            return 0;
+        public ObjectType getType() {
+            return type;
         }
 
         public float getAngle() {
