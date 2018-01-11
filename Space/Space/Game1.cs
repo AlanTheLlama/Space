@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -20,13 +22,18 @@ namespace Space {
         NetIncomingMessage mail;
         NetOutgoingMessage msg;
         NetClient client;
+        //TCP
+        TcpClient clientTCP;
+        DnsEndPoint serverEP;
+        IPHostEntry ipHostInfo;
+
         AI bob;
 
         public float MAX_SPEED = 9;
 
         public World world;
 
-        static public List<PlayerShip> playerList; //TURNED THIS TO STATIC
+        public static List<PlayerShip> playerList; //TURNED THIS TO STATIC
         char[] deliminators = { ',', ' ', '/' };
         string[] splitter;
         bool found;
@@ -44,13 +51,24 @@ namespace Space {
         }
 
         protected override void Initialize() {
-            // TODO: Add your initialization logic here
             world = new World(15000, 15000);
             world.Generate(600, 1000, 50);
 
             config = new NetPeerConfiguration("Squad");
             client = new NetClient(config);
             config.EnableUPnP = true;
+
+            //TCP
+            clientTCP = new TcpClient();
+            serverEP = new DnsEndPoint("frankensquad.zapto.org", 31579);
+            ipHostInfo = new IPHostEntry();
+            var res = Dns.GetHostEntry("frankensquad.zapto.org").AddressList;
+
+            System.Diagnostics.Debug.WriteLine(res);
+
+            System.Diagnostics.Debug.WriteLine(ipHostInfo.AddressList);
+            
+            //END TCP
 
             client.Start();
             client.Connect(host: "207.216.252.138", port: 31579);
@@ -138,7 +156,7 @@ namespace Space {
             }
 
             bob.nearby();
-            System.Diagnostics.Debug.WriteLine("Bob's Location: " + bob.pos.X.ToString() + ", " + bob.pos.Y.ToString());
+            //System.Diagnostics.Debug.WriteLine("Bob's Location: " + bob.pos.X.ToString() + ", " + bob.pos.Y.ToString());
 
             player.updatePosition(world);
             sendToServer(player);
