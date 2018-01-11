@@ -44,16 +44,18 @@ namespace Space {
         }
 
         public bool danger() {
-            foreach (PlayerShip ships in Game1.playerList) {
-                changeX = Math.Abs(ships.pos.X - this.pos.X);
-                changeY = Math.Abs(ships.pos.Y - this.pos.Y);
-                dist = (float)Math.Sqrt(((changeX * changeX) + (changeY * changeY)));
-                if (dist <= 200) {
-                    return true;
+            foreach (MovingObject mo in Game1.movingObjects) {
+                if (mo.getType() == 1) {
+                    changeX = Math.Abs(mo.getPos().X - this.pos.X);
+                    changeY = Math.Abs(mo.getPos().Y - this.pos.Y);
+                    dist = (float)Math.Sqrt(((changeX * changeX) + (changeY * changeY)));
+                    if (dist <= 200) {
+                        return true;
+                    }
+                    /*
+                    if (new Rectangle((int)ships.pos.X - 171, (int)ships.pos.Y - 191, 171, 191).Contains(
+                        new Point((int)this.pos.X, (int)this.pos.Y))) return true; */
                 }
-                /*
-                if (new Rectangle((int)ships.pos.X - 171, (int)ships.pos.Y - 191, 171, 191).Contains(
-                    new Point((int)this.pos.X, (int)this.pos.Y))) return true; */
             }
             return false;
         }
@@ -61,7 +63,7 @@ namespace Space {
         public void nearby() {
             if (danger()) {
                 this.moveYo();
-                System.Diagnostics.Debug.WriteLine("DANGER!");
+                //System.Diagnostics.Debug.WriteLine("DANGER!");
             }
             else if (!danger() && this.speed > 0) {
                 brake();

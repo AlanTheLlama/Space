@@ -7,10 +7,10 @@ using Microsoft.Xna.Framework;
 
 namespace Space
 {
-    public class PlayerShip
-    {
+    public class PlayerShip : MovingObject {
         public float MAX_SPEED = 9;
 
+        // MOVEMENT
         public Vector2 pos;
         public Vector2 velocity;
         public float aimRotation;
@@ -20,9 +20,17 @@ namespace Space
         public float backwardForce;
         public float sideForce;
         public float mass;
+
+        // SERVER
         public bool initialized;
         public int identifier;
         Random r = new Random();
+
+        // STATS (not implemented yet)
+        public float power;
+        public float shield;
+        public float weapons;
+        public float weaponCooldown;
 
         public PlayerShip(Vector2 vec)
         {
@@ -35,8 +43,14 @@ namespace Space
             this.backwardForce = (float)1;
             this.sideForce = (float)0.5;
             this.mass = 5;
+
             this.initialized = true;
             this.identifier = r.Next(0, 1000000);
+
+            this.power = 10;
+            this.shield = 2;
+            this.weapons = 8;
+            this.weaponCooldown = 300;
         }
 
         public PlayerShip(Vector2 vec, float rot, int id) {            //for other players
@@ -142,6 +156,29 @@ namespace Space
                 y = vec.Y;
             }
             this.pos = new Vector2(x, y);
+        }
+
+        public Laser fireWeapon(Vector2 mouse) {
+            Laser laser = new Laser(this.pos, this.weapons, (float)Math.Tan((mouse.X - this.pos.X) / (mouse.Y - this.pos.Y)));
+            System.Diagnostics.Debug.WriteLine(laser.angle.ToString());
+            return laser;
+        }
+
+        public void update(World w) {
+            updatePosition(w);
+            this.weaponCooldown--;
+        }
+
+        public Vector2 getPos() {
+            return this.pos;
+        }
+
+        public int getType() {
+            return 0;
+        }
+
+        public float getAngle() {
+            return this.aimRotation;
         }
     }
 }
