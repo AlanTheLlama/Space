@@ -15,11 +15,15 @@ namespace Space {
         public float lifetime;
         public int identifier;
 
+        private ObjectType type;
+
         public Laser(Vector2 pos, float power, float angle) {
             this.pos = pos;
             this.power = power;
             this.angle = angle;
             this.lifetime = 1000;
+
+            type = ObjectType.PROJECTILE;
         }
 
         public void updatePosition(World w) {
@@ -38,8 +42,8 @@ namespace Space {
             return this.pos;
         }
 
-        public int getType() {
-            return 1;
+        public ObjectType getType() {
+            return type;
         }
 
         public float getAngle() {

@@ -168,8 +168,10 @@ namespace Space {
         }
         public bool danger() {
             foreach (MovingObject mo in Game1.movingObjects) {
-                if (mo.getType() == 0) { //Changed from 1 to 0
-                    distToo(mo);
+                if (mo.getType() == ObjectType.PLAYER) {
+                    changeX = Math.Abs(mo.getPos().X - this.pos.X);
+                    changeY = Math.Abs(mo.getPos().Y - this.pos.Y);
+                    dist = (float)Math.Sqrt(((changeX * changeX) + (changeY * changeY)));
                     if (dist <= 200) {
                         return true;
                     }
