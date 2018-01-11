@@ -171,6 +171,7 @@ namespace Space
 
         public Laser fireWeapon(Vector2 mouse) {
             Laser laser = new Laser(this.pos, this.weapons, (float)Math.Tan((mouse.X - this.pos.X) / (mouse.Y - this.pos.Y)));
+            // TODO - fix mouse position
             System.Diagnostics.Debug.WriteLine(laser.angle.ToString());
             return laser;
         }
