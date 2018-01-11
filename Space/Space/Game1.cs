@@ -254,7 +254,7 @@ namespace Space {
                     null,
                     Color.White,
                     mo.getAngle() + (float)0.5 * (float)Math.PI,
-                    new Vector2(ship.Width / 2, ship.Height / 2),
+                    new Vector2(mo.GetTexture().Width / 2, mo.GetTexture().Height / 2),
                     SpriteEffects.None, 0);
                 spriteBatch.DrawString(font, movingObjects.Count.ToString() + ", " + movingObjects[i].getID().ToString(), new Vector2(-50, i * 20), Color.Black);
                 i++;
