@@ -123,6 +123,8 @@ namespace Space {
             bool keyA = false;   //because the Keyboard.GetState() function can only handle one key
             bool keyS = false;   //at a time
             bool keyD = false;
+            bool keyQ = false;
+            bool keyE = false;
 
             if (Keyboard.GetState().IsKeyDown(Keys.W)) {
                 keyW = true;
@@ -140,9 +142,14 @@ namespace Space {
                 keyD = true;
             } else keyD = false;
 
-            if (keyW == true && keyS == false) {
+            if (Keyboard.GetState().IsKeyDown(Keys.Q)) {
+                keyQ = true;
+            } else keyQ = false;
 
-            }
+            if (Keyboard.GetState().IsKeyDown(Keys.E)) {
+                keyE = true;
+            } else keyE = false;
+
             if (keyW == true) {
                 player.thrust();
             }
@@ -155,14 +162,16 @@ namespace Space {
                 player.rotateRight();
             }
 
-            if (keyA == true)
-            {
+            if (keyA == true) {
                 player.rotateLeft();
             }
 
-            if (player.speed < 0.2)
-            {
-                player.resetRot();
+            if (keyQ == true) {
+                player.leftThrust();
+            }
+
+            if (keyE == true) {
+                player.rightThrust();
             }
 
             bob.nearby();
