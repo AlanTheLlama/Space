@@ -33,7 +33,7 @@ namespace Space {
 
         public World world;
 
-        public static List<PlayerShip> playerList; //TURNED THIS TO STATIC
+        static public List<MovingObject> movingObjects;
         char[] deliminators = { ',', ' ', '/' };
         string[] splitter;
         bool found;
@@ -81,7 +81,7 @@ namespace Space {
         protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            playerList = new List<PlayerShip>();
+            movingObjects = new List<MovingObject>();
 
             //textures
             ship = Content.Load<Texture2D>("Images/ship");
@@ -91,7 +91,7 @@ namespace Space {
             font = Content.Load<SpriteFont>("File");
 
             player = new PlayerShip(new Vector2(world.SizeX / 2, world.SizeY / 2));
-            playerList.Add(player);
+            movingObjects.Add(player);
 
             bob = new AI(7500, 7500);
 
@@ -115,6 +115,7 @@ namespace Space {
             bool keyD = false;
             bool keyQ = false;
             bool keyE = false;
+            bool click = false;
 
             if (Keyboard.GetState().IsKeyDown(Keys.W)) {
                 keyW = true;
@@ -140,6 +141,10 @@ namespace Space {
                 keyE = true;
             } else keyE = false;
 
+            if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
+                click = true;
+            } else click = false;
+
             if (keyW == true) {
                 player.thrust();
             }
@@ -163,11 +168,17 @@ namespace Space {
             if (keyE == true) {
                 player.rightThrust();
             }
+            
+            if (click == true) {
+                movingObjects.Add(player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y)));
+            }
+
+            foreach (MovingObject mo in movingObjects) {
+                mo.update(world);
+            }
 
             bob.nearby();
             //System.Diagnostics.Debug.WriteLine("Bob's Location: " + bob.pos.X.ToString() + ", " + bob.pos.Y.ToString());
-
-            player.updatePosition(world);
             sendToServer(player);
             checkMail();
             //push!
@@ -193,16 +204,18 @@ namespace Space {
             }
 
             int i = 0;
-            foreach (PlayerShip ships in playerList) {
-                spriteBatch.Draw(ship,
-                    new Rectangle((int)ships.pos.X, (int)ships.pos.Y, ship.Width, ship.Height),
-                    null,
-                    Color.White,
-                    ships.aimRotation + (float)0.5 * (float)Math.PI,
-                    new Vector2(ship.Width / 2, ship.Height / 2),
-                    SpriteEffects.None, 0);
-                spriteBatch.DrawString(font, playerList.Count.ToString() + ", " + playerList[i].identifier.ToString(), new Vector2(-50, i * 20), Color.Black);
-                i++;
+            foreach (MovingObject mo in movingObjects) {
+                if (mo.getType() == 0) {
+                    spriteBatch.Draw(ship,
+                        new Rectangle((int)mo.getPos().X, (int)mo.getPos().Y, ship.Width, ship.Height),
+                        null,
+                        Color.White,
+                        mo.getAngle() + (float)0.5 * (float)Math.PI,
+                        new Vector2(ship.Width / 2, ship.Height / 2),
+                        SpriteEffects.None, 0);
+                    spriteBatch.DrawString(font, movingObjects.Count.ToString() + ", " + movingObjects[i].getID().ToString(), new Vector2(-50, i * 20), Color.Black);
+                    i++;
+                }
             }
 
             //drawing some tiles to represent camera/ship movement against something that stays still
@@ -234,14 +247,16 @@ namespace Space {
                         splitter = mail.ReadString().ToString().Split(deliminators);
 
                         found = false;
-                        for (int i = 0; i < playerList.Count; i++) {
-                            if (playerList[i].getID().ToString().Equals(splitter[3]) && splitter[3].Equals(player.getID().ToString()) == false) {
-                                playerList[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2]));
-                                found = true;
+                        for (int i = 0; i < movingObjects.Count; i++) {
+                            if (movingObjects[i].getType() == 0) {
+                                if (movingObjects[i].getID().ToString().Equals(splitter[3]) && splitter[3].Equals(player.getID().ToString()) == false) {
+                                    movingObjects[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2]));
+                                    found = true;
+                                }
                             }
                         }
 
-                        if (!found && splitter[3].Equals(player.getID().ToString()) == false) playerList.Add(new PlayerShip(
+                        if (!found && splitter[3].Equals(player.getID().ToString()) == false) movingObjects.Add(new PlayerShip(
                               new Vector2(float.Parse(splitter[0]), float.Parse(splitter[1])), float.Parse(splitter[2]),
                               int.Parse(splitter[3])));
 
