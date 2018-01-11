@@ -186,7 +186,7 @@ namespace Space
         }
 
         public int getType() {
-            return 0;
+            return 0; 
         }
 
         public float getAngle() {

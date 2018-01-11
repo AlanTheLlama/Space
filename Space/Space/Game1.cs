@@ -207,6 +207,7 @@ namespace Space {
             }
 
             bob.nearby();
+            bob.updatePosition(world);
 
             foreach (MovingObject mo in movingObjects) {
                 mo.update(world);
