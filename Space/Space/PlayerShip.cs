@@ -12,12 +12,14 @@ namespace Space
         public float MAX_SPEED = 9;
 
         public Vector2 pos;
+        public Vector2 velocity;
         public float aimRotation;
-        public float movRotation;
-        public float speed;
         public float rotSpeed;
         public float curveSpeed;
-        public float acceleration;
+        public float forwardForce;
+        public float backwardForce;
+        public float sideForce;
+        public float mass;
         public bool initialized;
         public int identifier;
         Random r = new Random();
@@ -26,11 +28,13 @@ namespace Space
         {
             this.pos = vec;
             this.aimRotation = (float)0.5 * (float)Math.PI;
-            this.movRotation = -this.aimRotation;
-            this.speed = 0;
+            this.velocity = new Vector2(0, 0);
             this.rotSpeed = (float)0.15;
             this.curveSpeed = (float)0.05;
-            this.acceleration = (float)0.4;
+            this.forwardForce = (float)2;
+            this.backwardForce = (float)1;
+            this.sideForce = (float)0.5;
+            this.mass = 5;
             this.initialized = true;
             this.identifier = r.Next(0, 1000000);
         }
@@ -76,69 +80,59 @@ namespace Space
 
         public void thrust()
         {
-            this.accelerate();
-            float rot = this.movRotation;
-            rot += (float)Math.PI;
-            if (rot >= 2 * Math.PI)
-            {
-                rot -= 2 * (float)Math.PI;
-            }
-            if (this.aimRotation != rot)
-            {
-                this.turnBody();
+            this.velocity.X = this.velocity.X + (float)Math.Cos(this.aimRotation) * this.forwardForce / this.mass;
+            this.velocity.Y = this.velocity.Y + (float)Math.Sin(this.aimRotation) * this.forwardForce / this.mass;
+            if (this.getSpeed() > MAX_SPEED) {
+                this.scaleSpeed();
             }
         }
 
-        public void accelerate()
-        {
-            this.speed += this.acceleration;
-            if (this.speed > MAX_SPEED)
-            {
-                this.speed = MAX_SPEED;
+        public void leftThrust() {
+            float left = this.aimRotation + (float)0.5 * (float)Math.PI;
+            if (left > 2 * Math.PI) {
+                left -= 2 * (float)Math.PI;
+            }
+            this.velocity.X = this.velocity.X + (float)Math.Cos(left) * this.forwardForce / this.mass;
+            this.velocity.Y = this.velocity.Y + (float)Math.Sin(left) * this.forwardForce / this.mass;
+            if (this.getSpeed() > MAX_SPEED) {
+                this.scaleSpeed();
             }
         }
 
-        public void turnBody()
-        {
-            float rot = this.movRotation;
-            rot = rot - this.aimRotation;
-            if (Math.Abs(rot) > this.curveSpeed)
-            {
-                if (rot < 0)
-                {
-                    rot += 2 * (float)Math.PI;
-                }
-                if (rot < Math.PI)
-                {
-                    this.movRotation += this.curveSpeed;
-                    if (this.movRotation > 2 * (float)Math.PI)
-                    {
-                        this.movRotation -= 2 * (float)Math.PI;
-                    }
-                }
-                else
-                {
-                    this.movRotation -= this.curveSpeed;
-                    if (this.movRotation < 0)
-                    {
-                        this.movRotation += 2 * (float)Math.PI;
-                    }
-                }
+        public void rightThrust() {
+            float right = this.aimRotation - (float)0.5 * (float)Math.PI;
+            if (right < 0) {
+                right += 2 * (float)Math.PI;
+            }
+            this.velocity.X = this.velocity.X + (float)Math.Cos(right) * this.sideForce / this.mass;
+            this.velocity.Y = this.velocity.Y + (float)Math.Sin(right) * this.sideForce / this.mass;
+            if (this.getSpeed() > MAX_SPEED) {
+                this.scaleSpeed();
             }
         }
 
-        public void brake()
-        {
-            this.speed -= this.acceleration;
-            if (this.speed < 0)
-            {
-                this.speed = 0;
+        public void scaleSpeed() {
+            float scale = MAX_SPEED / this.getSpeed();
+            this.velocity.X = this.velocity.X * scale;
+            this.velocity.Y = this.velocity.Y * scale;
+        }
+
+        public void brake() {
+            this.velocity.X = this.velocity.X - (float)Math.Cos(this.aimRotation) * this.sideForce / this.mass;
+            this.velocity.Y = this.velocity.Y - (float)Math.Sin(this.aimRotation) * this.sideForce / this.mass;
+            if (this.getSpeed() < 0.1) {
+                this.velocity.X = 0;
+                this.velocity.Y = 0;
             }
+        }
+
+        public float getSpeed() {
+            return (float)Math.Sqrt(this.velocity.X * this.velocity.X + this.velocity.Y * this.velocity.Y);
         }
 
         public void updatePosition(World w)
         {
-            Vector2 vec = new Vector2(this.pos.X - (this.speed * (float)Math.Cos(this.movRotation)), this.pos.Y - (this.speed * (float)Math.Sin(this.movRotation)));
+            Vector2 vec = new Vector2(this.pos.X + this.velocity.X, this.pos.Y + this.velocity.Y);
             float x = this.pos.X;
             float y = this.pos.Y;
             if (vec.X >= 0 || vec.X <= w.SizeX) {
@@ -148,16 +142,6 @@ namespace Space
                 y = vec.Y;
             }
             this.pos = new Vector2(x, y);
-        }
-
-        public void resetRot()
-        {
-            this.movRotation = this.aimRotation;
-            this.movRotation += (float)Math.PI;
-            if (this.movRotation > 2 * Math.PI)
-            {
-                this.movRotation -= 2 * (float)Math.PI;
-            }
         }
     }
 }
