@@ -102,7 +102,7 @@ namespace Space
         }
 
         public void leftThrust() {
-            float left = this.aimRotation + (float)0.5 * (float)Math.PI;
+            float left = this.aimRotation - (float)0.5 * (float)Math.PI;
             if (left > 2 * Math.PI) {
                 left -= 2 * (float)Math.PI;
             }
@@ -114,7 +114,7 @@ namespace Space
         }
 
         public void rightThrust() {
-            float right = this.aimRotation - (float)0.5 * (float)Math.PI;
+            float right = this.aimRotation + (float)0.5 * (float)Math.PI;
             if (right < 0) {
                 right += 2 * (float)Math.PI;
             }
@@ -131,11 +131,22 @@ namespace Space
             this.velocity.Y = this.velocity.Y * scale;
         }
 
-        public void brake() {
+        public void reverse() {
             this.velocity.X = this.velocity.X - (float)Math.Cos(this.aimRotation) * this.sideForce / this.mass;
             this.velocity.Y = this.velocity.Y - (float)Math.Sin(this.aimRotation) * this.sideForce / this.mass;
             if (this.getSpeed() < 0.1) {
                 this.velocity.X = 0;
+                this.velocity.Y = 0;
+            }
+        }
+
+        public void brake() {
+            this.velocity.X = this.velocity.X - this.velocity.X * this.backwardForce / (this.mass * this.getSpeed());
+            this.velocity.Y = this.velocity.Y - this.velocity.Y * this.backwardForce / (this.mass * this.getSpeed());
+            if (Math.Abs(this.velocity.X) < 0) {
+                this.velocity.X = 0;
+            }
+            if (Math.Abs(this.velocity.Y) < 0) {
                 this.velocity.Y = 0;
             }
         }

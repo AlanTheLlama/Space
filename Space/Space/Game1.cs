@@ -125,6 +125,7 @@ namespace Space {
             bool keyD = false;
             bool keyQ = false;
             bool keyE = false;
+            bool space = false;
             bool click = false;
 
             if (Keyboard.GetState().IsKeyDown(Keys.W)) {
@@ -155,12 +156,16 @@ namespace Space {
                 click = true;
             } else click = false;
 
+            if (Keyboard.GetState().IsKeyDown(Keys.Space)) {
+                space = true;
+            } else space = false;
+
             if (keyW == true) {
                 player.thrust();
             }
 
             if (keyS == true) {
-                player.brake();
+                player.reverse();
             }
 
             if (keyD == true) {
@@ -177,6 +182,10 @@ namespace Space {
 
             if (keyE == true) {
                 player.rightThrust();
+            }
+
+            if (space == true) {
+                player.brake();
             }
 
             if (click == true) {
