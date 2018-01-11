@@ -96,7 +96,6 @@ namespace Space
                 this.aimRotation = this.aimRotation + (2 * ((float)Math.PI));
             }
         }
-
         public void thrust()
         {
             this.velocity.X = this.velocity.X + (float)Math.Cos(this.aimRotation) * this.forwardForce / this.mass;
@@ -190,8 +189,8 @@ namespace Space
             return this.pos;
         }
 
-        public int getType() {
-            return 0;
+        public ObjectType getType() {
+            return type;
         }
 
         public float getAngle() {
