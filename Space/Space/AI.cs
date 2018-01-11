@@ -17,6 +17,7 @@ namespace Space {
         public float changeX;
         public float changeY;
         public float dist;
+
         public AI (int x, int y) { //Creates a new AI at pos x, y
             this.pos = new Vector2(x, y);
             this.acceleration = (float)0.3;
