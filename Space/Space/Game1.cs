@@ -118,7 +118,6 @@ namespace Space {
             if(Keyboard.GetState().IsKeyDown(Keys.Enter) && connected == false) {
                 connectToServer();
             }
-            HandleCommunication();
 
             bool keyW = false;   //these are necessary for angling the sprites when two keys are pressed,
             bool keyA = false;   //because the Keyboard.GetState() function can only handle one key
@@ -183,7 +182,7 @@ namespace Space {
             //push!
             //if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
 
-
+            if(connected)sendToServer(player);
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
 
@@ -287,8 +286,12 @@ namespace Space {
 
         public void sendToServer(PlayerShip ps) {
             //msg = client.CreateMessage();
-         //   msg.Write(ps.dataString());
-        //    client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+            //   msg.Write(ps.dataString());
+            //    client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+
+            StreamWriter str = new StreamWriter(client.GetStream(), Encoding.ASCII);
+            str.WriteLine(ps.dataString());
+            str.Flush();
         }
 
        /* public void checkMail() {

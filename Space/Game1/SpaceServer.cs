@@ -205,10 +205,10 @@ namespace SpaceServer {
                 System.Diagnostics.Debug.WriteLine("Hi there!");
                 sData = null;
 
-                while (sData == null) {
+                while (client.Available == 0) {
                     System.Diagnostics.Debug.WriteLine("Loooooping");
                     sData = sReader.ReadLine();
-                    System.Diagnostics.Debug.WriteLine(sData);
+                    System.Diagnostics.Debug.WriteLine("WHILE sData: " + sData);
                 }
 
                 System.Diagnostics.Debug.WriteLine("sData: " + sData);
@@ -240,6 +240,9 @@ namespace SpaceServer {
                     sWriter.Flush();
                 }
             }
+
+            sWriter.Close();
+            sReader.Close();
         }
 
         public void TalkToTheHand(object client) {
