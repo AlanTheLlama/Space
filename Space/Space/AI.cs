@@ -14,7 +14,9 @@ namespace Space {
         public Vector2 pos; //Don't know if I need any of these?
         public float speed = 1;
         public float acceleration = 1;
-
+        public float changeX;
+        public float changeY;
+        public float dist;
         public AI (int x, int y) { //Creates a new AI at pos x, y
             this.pos = new Vector2(x, y);
             this.acceleration = (float)0.3;
@@ -41,17 +43,20 @@ namespace Space {
         }
 
         public bool danger() {
-            //If the player is within a 50x50 area return true
-            //Game1.playerList;
             foreach (PlayerShip ships in Game1.playerList) {
-                /*if ((ships.pos.X <= (this.pos.X + 50) && ships.pos.X >= (this.pos.X - 50)) && (ships.pos.Y <= (this.pos.Y + 50) && ships.pos.Y >= (this.pos.Y - 50))) {
+                changeX = Math.Abs(ships.pos.X - this.pos.X);
+                changeY = Math.Abs(ships.pos.Y - this.pos.Y);
+                dist = (float)Math.Sqrt(((changeX * changeX) + (changeY * changeY)));
+                if (dist <= 200) {
                     return true;
-                }*/
+                }
+                /*
                 if (new Rectangle((int)ships.pos.X - 171, (int)ships.pos.Y - 191, 171, 191).Contains(
-                    new Point((int)this.pos.X, (int)this.pos.Y))) return true;
+                    new Point((int)this.pos.X, (int)this.pos.Y))) return true; */
             }
             return false;
         }
+
         public void nearby() {
             if (danger()) {
                 this.moveYo();
