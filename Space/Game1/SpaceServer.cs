@@ -65,6 +65,7 @@ namespace SpaceServer {
             System.Diagnostics.Debug.WriteLine("Started listener, looping through clients");
 
             Thread listenerThread = new Thread(new ThreadStart(() => LoopClients()));
+            listenerThread.Start();
             System.Diagnostics.Debug.WriteLine("Started thread");
         }
 
@@ -178,40 +179,43 @@ namespace SpaceServer {
         }
 
         public void LoopClients() {
+            System.Diagnostics.Debug.WriteLine("LoopClients");
             while (running) {
                 System.Diagnostics.Debug.WriteLine("Waiting for client..");
-                // wait for client connection
+                
                 TcpClient newClient = listener.AcceptTcpClient();
                 System.Diagnostics.Debug.WriteLine("Found client");
-                // client found.
-                // create a thread to handle communication
+                
                 Thread t = new Thread(new ParameterizedThreadStart(HandleClient));
                 t.Start(newClient);
             }
         }
 
         public void HandleClient(object obj) {
-            // retrieve client from parameter passed to thread
             TcpClient client = (TcpClient)obj;
             System.Diagnostics.Debug.WriteLine("Handling client");
 
-            // sets two streams
             StreamWriter sWriter = new StreamWriter(client.GetStream(), Encoding.ASCII);
             StreamReader sReader = new StreamReader(client.GetStream(), Encoding.ASCII);
-            // you could use the NetworkStream to read and write, 
-            // but there is no forcing flush, even when requested
 
             Boolean bClientConnected = true;
             String sData = null;
 
             while (bClientConnected) {
-                // reads from stream
-                sData = sReader.ReadLine();
+                System.Diagnostics.Debug.WriteLine("Hi there!");
+                sData = null;
 
+                while (sData == null) {
+                    System.Diagnostics.Debug.WriteLine("Loooooping");
+                    sData = sReader.ReadLine();
+                    System.Diagnostics.Debug.WriteLine(sData);
+                }
+
+                System.Diagnostics.Debug.WriteLine("sData: " + sData);
                 splitter = new string[4] { "0", "1", "2", "3" };
                 splitter = sData.Split(deliminators);
 
-                //System.Diagnostics.Debug.WriteLine("ID REPORTED: " + splitter[3]);
+                System.Diagnostics.Debug.WriteLine("ID REPORTED: " + splitter[3]);
 
                 bool exists = false;
                 System.Diagnostics.Debug.WriteLine("Splitter length: " + splitter.Length);

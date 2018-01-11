@@ -115,9 +115,10 @@ namespace Space {
                 Exit();
             }
 
-            if(Keyboard.GetState().IsKeyDown(Keys.Enter)) {
+            if(Keyboard.GetState().IsKeyDown(Keys.Enter) && connected == false) {
                 connectToServer();
             }
+            HandleCommunication();
 
             bool keyW = false;   //these are necessary for angling the sprites when two keys are pressed,
             bool keyA = false;   //because the Keyboard.GetState() function can only handle one key
@@ -181,6 +182,7 @@ namespace Space {
             //checkMail();
             //push!
             //if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
+
 
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
@@ -261,15 +263,12 @@ namespace Space {
             connected = true;
             String sData = null;
             while (connected) {
-                Console.Write("Message from client");
-                sData = Console.ReadLine();
-
                 _sWriter.WriteLine(player.dataString());    //sending
                 _sWriter.Flush();
 
                 String sDataIncoming = _sReader.ReadLine(); //recieving
                 splitter = new string[4] { "0", "1", "2", "3" };
-                splitter = mail.ReadString().ToString().Split(deliminators);
+                splitter = sDataIncoming.Split(deliminators);
 
                 found = false;
                 for (int i = 0; i < playerList.Count; i++) {
