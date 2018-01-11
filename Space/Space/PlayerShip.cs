@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Space
 {
@@ -195,6 +196,10 @@ namespace Space
 
         public float getAngle() {
             return this.aimRotation;
+        }
+
+        public Texture2D GetTexture() {
+            return Game1.ship;
         }
     }
 }

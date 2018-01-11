@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,8 @@ namespace Space {
         Vector2 getPos();
 
         ObjectType getType();
+
+        Texture2D GetTexture();
 
         float getAngle();
 

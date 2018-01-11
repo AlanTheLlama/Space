@@ -60,6 +60,7 @@ namespace Space {
         public static Texture2D testTile;
         public static Texture2D asteroid;
         public static Texture2D enemy;
+        public static Texture2D laserTex;
 
         bool connected = false;
 
@@ -110,6 +111,7 @@ namespace Space {
             asteroid = Content.Load<Texture2D>("Images/asteroid");
             enemy = Content.Load<Texture2D>("Images/enemy");
             font = Content.Load<SpriteFont>("File");
+            laserTex = Content.Load<Texture2D>("Images/laser");
 
             player = new PlayerShip(new Vector2(world.SizeX / 2, world.SizeY / 2));
             movingObjects.Add(player);
@@ -239,25 +241,23 @@ namespace Space {
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
 
-            foreach (SpaceObject obj in World.spaceObjects) {
+            foreach (SpaceObject obj in World.spaceObjects) {        //static objects
                 spriteBatch.Draw(obj.getImage(),
                     new Rectangle(obj.getXpos(), obj.getYpos(), 50, 50),
                     Color.White);
             }
 
             int i = 0;
-            foreach (MovingObject mo in movingObjects) {
-                if (mo.getType() == 0) {
-                    spriteBatch.Draw(ship,
-                        new Rectangle((int)mo.getPos().X, (int)mo.getPos().Y, ship.Width, ship.Height),
-                        null,
-                        Color.White,
-                        mo.getAngle() + (float)0.5 * (float)Math.PI,
-                        new Vector2(ship.Width / 2, ship.Height / 2),
-                        SpriteEffects.None, 0);
-                    spriteBatch.DrawString(font, movingObjects.Count.ToString() + ", " + movingObjects[i].getID().ToString(), new Vector2(-50, i * 20), Color.Black);
-                    i++;
-                }
+            foreach (MovingObject mo in movingObjects) {             //moving objects (duh)
+                spriteBatch.Draw(mo.GetTexture(),
+                    new Rectangle((int)mo.getPos().X, (int)mo.getPos().Y, mo.GetTexture().Width, mo.GetTexture().Height),
+                    null,
+                    Color.White,
+                    mo.getAngle() + (float)0.5 * (float)Math.PI,
+                    new Vector2(ship.Width / 2, ship.Height / 2),
+                    SpriteEffects.None, 0);
+                spriteBatch.DrawString(font, movingObjects.Count.ToString() + ", " + movingObjects[i].getID().ToString(), new Vector2(-50, i * 20), Color.Black);
+                i++;
             }
 
             //drawing some tiles to represent camera/ship movement against something that stays still

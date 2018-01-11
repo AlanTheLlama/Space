@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace Space {
         public float angle;
         public float lifetime;
         public int identifier;
+        
 
         private ObjectType type;
 
@@ -57,6 +59,10 @@ namespace Space {
         public void setCoords(float x, float y, float rot) {
             this.pos = new Vector2(x, y);
             this.angle = rot;
+        }
+
+        public Texture2D GetTexture() {
+            return Game1.laserTex;
         }
     }
 }

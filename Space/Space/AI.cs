@@ -181,7 +181,7 @@ namespace Space {
         public void nearby() { //What to do when a player is detected
             if (danger()) {
                 this.thrust();
-                System.Diagnostics.Debug.WriteLine("DANGER!");
+                //System.Diagnostics.Debug.WriteLine("DANGER!");
             }
             else if (!danger() && this.getSpeed() > 0) {
                 brake();
