@@ -284,9 +284,6 @@ namespace Space {
             connected = true;
             String sData = null;
             while (connected) {
-                _sWriter.WriteLine(player.dataString());    //sending
-                _sWriter.Flush();
-
                 String sDataIncoming = _sReader.ReadLine(); //recieving
                 splitter = new string[4] { "0", "1", "2", "3" };
                 splitter = sDataIncoming.Split(deliminators);
