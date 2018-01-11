@@ -13,6 +13,18 @@ namespace Space {
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
+
+    public class StateObject {
+        // Client  socket.
+        public Socket workSocket = null;
+        // Size of receive buffer.
+        public const int BufferSize = 1024;
+        // Receive buffer.
+        public byte[] buffer = new byte[BufferSize];
+        // Received data string.
+        public StringBuilder sb = new StringBuilder();
+    }
+
     public class Game1 : Game {
         GraphicsDeviceManager graphics;
         Viewport viewport;
@@ -40,7 +52,7 @@ namespace Space {
         public World world;
 
         public static List<MovingObject> movingObjects;
-        char[] deliminators = { ',', ' ', '/' };
+        char[] deliminators = { ',', ' ', '/', ';'};
         string[] splitter;
         bool found;
 
@@ -61,6 +73,8 @@ namespace Space {
         protected override void Initialize() {
             world = new World(15000, 15000);
             world.Generate(600, 1000, 50);
+
+            this.IsMouseVisible = true;
 
             config = new NetPeerConfiguration("Squad");
             //client = new NetClient(config);
@@ -202,7 +216,7 @@ namespace Space {
             //push!
             //if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
 
-            if(connected)sendToServer(player);
+            if (connected) updateLocation(player);
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
 
@@ -266,27 +280,66 @@ namespace Space {
                 ASCIIEncoding encoder = new ASCIIEncoding();
 
                 client.Connect("192.168.1.244", 31579);
+                connected = true;
                 //System.Diagnostics.Debug.WriteLine("Connected");
-
-                /*Stream reader = client.GetStream();
-                Stream writer = client.GetStream();
-                byte[] b = encoder.GetBytes("Client sent message to server!");
-                reader.Write(b, 0, b.Length);*/
             } catch {
                 System.Diagnostics.Debug.WriteLine("Connection Failed");
+                connected = false;
             }
+        }
+
+        public void updateLocation(MovingObject mo) {
+            ASCIIEncoding encoder = new ASCIIEncoding();
+            Stream writer = client.GetStream();
+            NetworkStream clientStream = client.GetStream();
+
+            byte[] buffer = encoder.GetBytes(player.dataString());
+            byte[] message = new byte[4096];
+            int bytesRead;
+
+            //System.Diagnostics.Debug.WriteLine("CLIENT: Writing buffer ");
+            writer.Write(buffer, 0, buffer.Length);
+
+            //System.Diagnostics.Debug.WriteLine("CLIENT: Entering while ");
+            bytesRead = 0;
+            if (clientStream.DataAvailable) {
+                while (true || encoder.GetString(message, 0, bytesRead).Split(deliminators).Length <= 4) {
+                    bytesRead = 0;
+                    try {
+                        //System.Diagnostics.Debug.WriteLine("CLIENT: Attempting to find paper ");
+                        bytesRead = clientStream.Read(message, 0, 4096);
+                        //System.Diagnostics.Debug.WriteLine("CLIENT: Read the morning paper, page #" + bytesRead);
+                        String rec = encoder.GetString(message, 0, bytesRead);
+                        System.Diagnostics.Debug.WriteLine("CLIENT-RECIEVED-PRELIM: " + rec);
+                    } catch {
+                        System.Diagnostics.Debug.WriteLine("CLIENT: Neighbour was an asshole. ");
+                        break;
+                    }
+                    if (bytesRead == 0) {
+                        System.Diagnostics.Debug.WriteLine("CLIENT: Neighbour ditched us. ");
+                        break;
+                    }
+                }
+            }
+            if (bytesRead > 0) {
+                String rec = encoder.GetString(message, 0, bytesRead);
+                System.Diagnostics.Debug.WriteLine("CLIENT-RECIEVED: " + rec);
+            }
+            writer.Flush();
         }
 
         public void HandleCommunication() {
             _sReader = new StreamReader(client.GetStream(), Encoding.ASCII);
             _sWriter = new StreamWriter(client.GetStream(), Encoding.ASCII);
 
-            connected = true;
+            //connected = true;
             String sData = null;
             while (connected) {
                 String sDataIncoming = _sReader.ReadLine(); //recieving
                 splitter = new string[4] { "0", "1", "2", "3" };
                 splitter = sDataIncoming.Split(deliminators);
+
+                System.Diagnostics.Debug.WriteLine("CLIENT-RECIEVE: " + sDataIncoming);
 
                 found = false;
                 for (int i = 0; i < movingObjects.Count; i++) {
@@ -299,19 +352,9 @@ namespace Space {
                 if (!found && splitter[3].Equals(player.getID().ToString()) == false) movingObjects.Add(new PlayerShip(
                       new Vector2(float.Parse(splitter[0]), float.Parse(splitter[1])), float.Parse(splitter[2]),
                       int.Parse(splitter[3])));
-                System.Diagnostics.Debug.WriteLine("Added player");
+                System.Diagnostics.Debug.WriteLine("CLIENT: Added player");
             }
-        }
-
-        public void sendToServer(PlayerShip ps) {
-            //msg = client.CreateMessage();
-            //   msg.Write(ps.dataString());
-            //    client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
-
-            StreamWriter str = new StreamWriter(client.GetStream(), Encoding.ASCII);
-            str.WriteLine(ps.dataString());
-            str.Flush();
-        }
+        } //dead
 
        /* public void checkMail() {
             while ((mail = client.ReadMessage()) != null) {

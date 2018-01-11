@@ -40,7 +40,7 @@ namespace SpaceServer
         }
 
         public string dataString() {
-            return x.ToString() + "/" + y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString();
+            return x.ToString() + "/" + y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString() + ";";
         }
     }
 }

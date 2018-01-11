@@ -35,7 +35,7 @@ namespace Space
         public PlayerShip(Vector2 vec)
         {
             this.pos = vec;
-            this.aimRotation = (float)0.5 * (float)Math.PI;
+            this.aimRotation = (float)0.5 * (float)Math.PI;           //don't press enter.
             this.velocity = new Vector2(0, 0);
             this.rotSpeed = (float)0.15;
             this.curveSpeed = (float)0.05;
@@ -66,7 +66,7 @@ namespace Space
             return this.aimRotation;
         }
         public string dataString() {
-            return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString();
+            return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString() + "/";
         }
         public void setCoords(float x, float y, float rot) {
             this.pos = new Vector2(x, y);
@@ -172,7 +172,7 @@ namespace Space
         public Laser fireWeapon(Vector2 mouse) {
             Laser laser = new Laser(this.pos, this.weapons, (float)Math.Tan((mouse.X - this.pos.X) / (mouse.Y - this.pos.Y)));
             // TODO - fix mouse position
-            System.Diagnostics.Debug.WriteLine(laser.angle.ToString());
+            //System.Diagnostics.Debug.WriteLine(laser.angle.ToString());
             return laser;
         }
 
