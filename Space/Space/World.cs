@@ -11,7 +11,7 @@ namespace Space {
         public int SizeX { get; set; }
         public int SizeY { get; set; }
 
-        public static List<SpaceObject> spaceObjects;
+        public List<SpaceObject> spaceObjects;
 
         public World(int sizeX, int sizeY)
         {
@@ -33,11 +33,15 @@ namespace Space {
                 int x = r.Next(0, SizeX);
                 int y = r.Next(0, SizeY);
 
-                if (type == 1) spaceObjects.Add(new Asteroid(x, y));
-                if (type == 2) spaceObjects.Add(new Asteroid(x, y)); //only one type of SpaceObject rn lol
-                if (type == 3) spaceObjects.Add(new Asteroid(x, y));
-                if (type == 4) spaceObjects.Add(new Asteroid(x, y));
+                if (type == 1) spaceObjects.Add(new Asteroid(x, y, 100));
+                if (type == 2) spaceObjects.Add(new Asteroid(x, y, 100)); //only one type of SpaceObject rn lol
+                if (type == 3) spaceObjects.Add(new Asteroid(x, y, 100));
+                if (type == 4) spaceObjects.Add(new Asteroid(x, y, 100));
             }
+        }
+
+        public List<SpaceObject> getSpaceObjects() {
+            return this.spaceObjects;
         }
     }
 }

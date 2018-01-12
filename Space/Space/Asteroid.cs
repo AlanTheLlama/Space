@@ -7,18 +7,19 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Space {
     class Asteroid : SpaceObject {
-        public int x;
-        public int y;
+        private float x;
+        private float y;
+        private float radius;
 
         public Texture2D getImage() {
             return Space.Game1.asteroid;
         }
 
-        public int getXpos() {
+        public float getXpos() {
             return x;
         }
 
-        public int getYpos() {
+        public float getYpos() {
             return y;
         }
 
@@ -26,9 +27,14 @@ namespace Space {
             return 0;
         }
 
-        public Asteroid(int x, int y) {
+        public Asteroid(float x, float y, float radius) {
             this.x = x;
             this.y = y;
+            this.radius = radius;
+        }
+
+        public float getRadius() {
+            return this.radius;
         }
     }
 }
