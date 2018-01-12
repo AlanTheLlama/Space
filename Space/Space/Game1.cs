@@ -86,7 +86,7 @@ namespace Space {
             //ipHostInfo = Dns.GetHostEntry("24.108.12.19");
             //ipAddress = ipHostInfo.AddressList[0];
             //remoteEP = new IPEndPoint(ipAddress, 31579);
-            remoteEP = new IPEndPoint(IPAddress.Parse("24.108.12.19"), 31579);
+            remoteEP = new IPEndPoint(IPAddress.Parse("192.168.0.13"), 31579);
             client = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
 
