@@ -83,9 +83,10 @@ namespace Space {
             //client = new NetClient(config);
             config.EnableUPnP = true;
 
-            ipHostInfo = Dns.GetHostEntry("frankensquad.zapto.org");
-            ipAddress = ipHostInfo.AddressList[0];
-            remoteEP = new IPEndPoint(ipAddress, 31579);
+            //ipHostInfo = Dns.GetHostEntry("24.108.12.19");
+            //ipAddress = ipHostInfo.AddressList[0];
+            //remoteEP = new IPEndPoint(ipAddress, 31579);
+            remoteEP = new IPEndPoint(IPAddress.Parse("24.108.12.19"), 31579);
             client = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
 
@@ -188,7 +189,7 @@ namespace Space {
                 mo.update(world);
             }
 
-            //connectToServer();
+            connectToServer();
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
         }
