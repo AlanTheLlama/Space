@@ -135,77 +135,39 @@ namespace Space {
                 connectToServer();
             }
 
-            bool keyW = false;   //these are necessary for angling the sprites when two keys are pressed,
-            bool keyA = false;   //because the Keyboard.GetState() function can only handle one key
-            bool keyS = false;   //at a time
-            bool keyD = false;
-            bool keyQ = false;
-            bool keyE = false;
-            bool space = false;
-            bool click = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.W)) {
-                keyW = true;
-            } else keyW = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.S)) {
-                keyS = true;
-            } else keyS = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.A)) {
-                keyA = true;
-            } else keyA = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.D)) {
-                keyD = true;
-            } else keyD = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Q)) {
-                keyQ = true;
-            } else keyQ = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.E)) {
-                keyE = true;
-            } else keyE = false;
-
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
-                click = true;
-            } else click = false;
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Space)) {
-                space = true;
-            } else space = false;
-
-            if (keyW == true) {
+            if (Keyboard.GetState().IsKeyDown(Keys.W) == true) {
                 player.thrust();
             }
 
-            if (keyS == true) {
+            if (Keyboard.GetState().IsKeyDown(Keys.S) == true) {
                 player.reverse();
             }
 
-            if (keyD == true) {
+            if (Keyboard.GetState().IsKeyDown(Keys.D) == true) {
                 player.rotateRight();
             }
 
-            if (keyA == true) {
+            if (Keyboard.GetState().IsKeyDown(Keys.A) == true) {
                 player.rotateLeft();
             }
 
-            if (keyQ == true) {
+            if (Keyboard.GetState().IsKeyDown(Keys.Q) == true) {
                 player.leftThrust();
             }
 
-            if (keyE == true) {
+            if (Keyboard.GetState().IsKeyDown(Keys.E) == true) {
                 player.rightThrust();
             }
 
-            if (space == true) {
+            if (Keyboard.GetState().IsKeyDown(Keys.Space) == true) {
                 player.brake();
             }
 
-            if (click == true) {
-                movingObjects.Add(player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y)));
+            if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
+                Laser l = player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
+                if (l != null) {
+                    movingObjects.Add(l);
+                }
             }
 
             bob.nearby();

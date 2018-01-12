@@ -10,6 +10,7 @@ namespace Space
 {
     public class PlayerShip : MovingObject {
         public float MAX_SPEED = 9;
+        public float COOLDOWN = 30;
 
         // MOVEMENT
         public Vector2 pos;
@@ -54,7 +55,7 @@ namespace Space
             this.power = 10;
             this.shield = 2;
             this.weapons = 8;
-            this.weaponCooldown = 300;
+            this.weaponCooldown = 0;
 
             type = ObjectType.PLAYER;
         }
@@ -157,7 +158,7 @@ namespace Space
         }
 
         public float getSpeed() {
-            return (float)Math.Sqrt(this.velocity.X * this.velocity.X + this.velocity.Y * this.velocity.Y);
+            return Math2.getQuadSum(this.velocity.X, this.velocity.Y);
         }
 
         public void updatePosition(World w)
@@ -175,15 +176,23 @@ namespace Space
         }
 
         public Laser fireWeapon(Vector2 mouse) {
-            Laser laser = new Laser(this.pos, this.weapons, (float)Math.Tan((mouse.X - this.pos.X) / (mouse.Y - this.pos.Y)));
-            // TODO - fix mouse position
-            //System.Diagnostics.Debug.WriteLine(laser.angle.ToString());
-            return laser;
+            if (weaponCooldown == 0) {
+                float x = mouse.X - 400;
+                float y = mouse.Y - 240;
+                Vector2 angle = Math2.getUnitVector(x, y);
+                Laser laser = new Laser(this.pos, this.weapons, angle);
+                this.weaponCooldown = 20;
+                System.Diagnostics.Debug.WriteLine(mouse.X.ToString()+ ", " + mouse.Y.ToString());
+                return laser;
+            }
+            return null;
         }
 
         public void update(World w) {
             updatePosition(w);
-            this.weaponCooldown--;
+            if (weaponCooldown > 0) {
+                this.weaponCooldown--;
+            }
         }
 
         public Vector2 getPos() {
