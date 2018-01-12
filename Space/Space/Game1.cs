@@ -36,11 +36,12 @@ namespace Space {
         NetIncomingMessage mail;
         NetOutgoingMessage msg;
         //NetClient client;
-        //TCP
-        TcpClient clientTCP;
-        TcpClient client;
-        IPEndPoint serverEP;
+        //TCP v
+        //Sockets/DDNS v
         IPHostEntry ipHostInfo;
+        IPAddress ipAddress;
+        IPEndPoint remoteEP;
+        Socket client;
 
         StreamReader _sReader;
         StreamWriter _sWriter;
@@ -55,6 +56,7 @@ namespace Space {
         char[] deliminators = { ',', ' ', '/', ';'};
         string[] splitter;
         bool found;
+        bool talking = false;
 
         public static Texture2D ship;
         public static Texture2D testTile;
@@ -81,19 +83,11 @@ namespace Space {
             //client = new NetClient(config);
             config.EnableUPnP = true;
 
-            //TCP
-            /*clientTCP = new TcpClient();
-            serverEP = new IPEndPoint(IPAddress.Parse("207.216.252.138"), 31579);
-            ipHostInfo = new IPHostEntry();*/
-            //var res = Dns.GetHostEntry("frankensquad.zapto.org").AddressList;
-            //System.Diagnostics.Debug.WriteLine("HOST ENTRY:" + res);
-
-            //System.Diagnostics.Debug.WriteLine(ipHostInfo.AddressList);
-            
-            //END TCP
-
-            //client.Start();
-            //client.Connect(host: "207.216.252.138", port: 31579);
+            ipHostInfo = Dns.GetHostEntry("frankensquad.zapto.org");
+            ipAddress = ipHostInfo.AddressList[0];
+            remoteEP = new IPEndPoint(ipAddress, 31579);
+            client = new Socket(AddressFamily.InterNetwork,
+                SocketType.Stream, ProtocolType.Tcp);
 
             base.Initialize();
         }
@@ -214,23 +208,10 @@ namespace Space {
             foreach (MovingObject mo in movingObjects) {
                 mo.update(world);
             }
-            //sendToServer(player);
-            //checkMail();
-            //push!
-            //if (Keyboard.GetState().IsKeyDown(Keys.Enter)) client.Disconnect("Disconnected");
 
-            if (connected) updateLocation(player);
+            connectToServer();
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
-
-            /*if (!clientTCP.Connected) {
-                System.Diagnostics.Debug.WriteLine("Attempting to connect to 207.216.252.138...");
-                try {
-                    clientTCP.Connect(serverEP);
-                } catch (System.Net.Sockets.SocketException ex) {
-                    System.Diagnostics.Debug.WriteLine("Failed to connect: " + ex);
-                }
-            } else if (clientTCP.Connected) System.Diagnostics.Debug.WriteLine("Connected!");*/
         }
 
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
@@ -277,10 +258,9 @@ namespace Space {
         
         public void connectToServer() {
             try {
-                client = new TcpClient();
                 ASCIIEncoding encoder = new ASCIIEncoding();
 
-                client.Connect("192.168.1.244", 31579);
+                client.BeginConnect(remoteEP, new AsyncCallback(AcceptCallback), client);
                 connected = true;
                 //System.Diagnostics.Debug.WriteLine("Connected");
             } catch {
@@ -289,21 +269,84 @@ namespace Space {
             }
         }
 
-        public void updateLocation(MovingObject mo) {
+        public void AcceptCallback(IAsyncResult ar) {
+            Socket listener = (Socket)ar.AsyncState;
+            Socket handler = listener.EndAccept(ar);
+
+            StateObject state = new StateObject();
+            state.workSocket = handler;
+            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                new AsyncCallback(updateLocation), state);
+        }
+
+        public void SendStuff(IAsyncResult ar) {
+            try {
+                Socket client = (Socket)ar.AsyncState;
+
+                int bytesSent = client.EndSend(ar);
+
+            }catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine(e);
+            }
+        }
+
+        public void RecieveStuff(IAsyncResult ar) {
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket handler = state.workSocket;
             ASCIIEncoding encoder = new ASCIIEncoding();
-            Stream writer = client.GetStream();
-            NetworkStream clientStream = client.GetStream();
+
+            int bytesRead = handler.EndReceive(ar);
+            String content = String.Empty;
+
+            if(bytesRead > 0) {
+                state.sb.Append(encoder.GetString(state.buffer, 0, bytesRead));
+
+                content = state.sb.ToString();
+
+                if (content.IndexOf("<EOF>") > -1) {
+                    System.Diagnostics.Debug.WriteLine("SERVER: Read {0} bytes from socket. \n Data : {1}",
+                        content.Length, content);
+
+                    //System.Diagnostics.Debug.WriteLine("CLIENT-RECIEVED: " + content);
+                } else {
+                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(RecieveStuff), state);
+                }
+
+                state.sb.Clear();
+
+                String rec = content;
+                System.Diagnostics.Debug.WriteLine("CLIENT-RECIEVED: " + rec);
+            }
+        }
+
+        public void updateLocation(IAsyncResult ar) {
+            ASCIIEncoding encoder = new ASCIIEncoding();
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket handler = state.workSocket;
 
             byte[] buffer = encoder.GetBytes(player.dataString());
             byte[] message = new byte[4096];
             int bytesRead;
 
-            //System.Diagnostics.Debug.WriteLine("CLIENT: Writing buffer ");
-            writer.Write(buffer, 0, buffer.Length);
+            //Sending
+            client.BeginSend(buffer, 0, buffer.Length, 0,
+                new AsyncCallback(SendStuff), client);
 
-            //System.Diagnostics.Debug.WriteLine("CLIENT: Entering while ");
+            //Listening
+
+            state = new StateObject();
+            state.workSocket = client;
+
+            try {
+                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(RecieveStuff), state);
+            }catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine("ERROR: " + e.ToString());
+            }
             bytesRead = 0;
-            if (clientStream.DataAvailable) {
+            /*if (true) {
+                talking = true;
                 while (true || encoder.GetString(message, 0, bytesRead).Split(deliminators).Length <= 4) {
                     bytesRead = 0;
                     try {
@@ -312,8 +355,8 @@ namespace Space {
                         //System.Diagnostics.Debug.WriteLine("CLIENT: Read the morning paper, page #" + bytesRead);
                         String rec = encoder.GetString(message, 0, bytesRead);
                         System.Diagnostics.Debug.WriteLine("CLIENT-RECIEVED-PRELIM: " + rec);
-                    } catch {
-                        System.Diagnostics.Debug.WriteLine("CLIENT: Neighbour was an asshole. ");
+                    } catch (System.IndexOutOfRangeException exc) {
+                        System.Diagnostics.Debug.WriteLine("CLIENT: Failed to recieve data: " + exc);
                         break;
                     }
                     if (bytesRead == 0) {
@@ -321,15 +364,15 @@ namespace Space {
                         break;
                     }
                 }
-            }
+            }*/
             if (bytesRead > 0) {
                 String rec = encoder.GetString(message, 0, bytesRead);
                 System.Diagnostics.Debug.WriteLine("CLIENT-RECIEVED: " + rec);
             }
-            writer.Flush();
+            //writer.Flush();
         }
 
-        public void HandleCommunication() {
+        /*public void HandleCommunication() {
             _sReader = new StreamReader(client.GetStream(), Encoding.ASCII);
             _sWriter = new StreamWriter(client.GetStream(), Encoding.ASCII);
 
@@ -355,7 +398,7 @@ namespace Space {
                       int.Parse(splitter[3])));
                 System.Diagnostics.Debug.WriteLine("CLIENT: Added player");
             }
-        } //dead
+        }*/ //dead
 
        /* public void checkMail() {
             while ((mail = client.ReadMessage()) != null) {

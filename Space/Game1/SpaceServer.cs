@@ -33,6 +33,7 @@ namespace SpaceServer {
         NetOutgoingMessage mOut;
         SpriteFont font;
         List<PlayerData> playerLocations;
+        List<int> IDS;
 
         TcpListener tcpListen;
         Socket listener;
@@ -54,19 +55,6 @@ namespace SpaceServer {
 
         protected override void Initialize() {
             this.IsMouseVisible = true;
-            /*config = new NetPeerConfiguration("Squad");
-            config.EnableUPnP = true;
-            config.LocalAddress = IPAddress.Parse("192.168.1.244");
-            config.Port = 31579;
-            //server = new NetServer(config);
-
-            tcpListen = new TcpListener(IPAddress.Parse("192.168.1.244"), 31579);
-            listenThread = new Thread(new ThreadStart(PutEarToDoor));
-            listenThread.Start();
-
-            System.Diagnostics.Debug.WriteLine("sys: " + listenThread.IsAlive);
-            */
-            base.Initialize();
 
             IPAddress IP = IPAddress.Parse("192.168.1.244");
 
@@ -81,9 +69,7 @@ namespace SpaceServer {
             //Thread listenerThread = new Thread(new ThreadStart(() => LoopClients()));
             System.Diagnostics.Debug.WriteLine("Started Listener Successfully");
 
-            /*IPHostEntry ipHostInfo = Dns.Resolve("frankensquad.zapto.org");
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPEndPoint remoteEP = new IPEndPoint(ipAddress, 31579);*/
+            base.Initialize();
         }
 
         protected override void LoadContent() {
@@ -96,6 +82,7 @@ namespace SpaceServer {
             sBRect = new Rectangle(10, GraphicsDevice.PresentationParameters.Bounds.Height - 30, 50, 20);
 
             playerLocations = new List<PlayerData>();
+            IDS = new List<int>() { 0 };
         }
         
         protected override void UnloadContent() {
@@ -112,66 +99,9 @@ namespace SpaceServer {
                 //server.Start();
             }*/
 
-            //System.Diagnostics.Debug.WriteLine("SERVER: Listening for client");
-            //listener.BeginAcceptTcpClient(new AsyncCallback(TalkToTheHand), null);
-            //System.Diagnostics.Debug.WriteLine("SERVER: Accepted client at " + newClient.Client.LocalEndPoint);
-
             TcpClient newClient;
             listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
 
-            //Thread t = new Thread(new ParameterizedThreadStart(TalkToTheHand));
-            //t.Start(newClient);
-            //System.Diagnostics.Debug.WriteLine("SERVER: Thread started");
-            //serverStatus = "Server Status: " + server.ConnectionsCount;
-            //System.Diagnostics.Debug.WriteLine(serverStatus);
-
-            /*while ((message = server.ReadMessage()) != null) {           //Reciever
-                switch (message.MessageType) {
-                    case NetIncomingMessageType.Data:
-                        splitter = new string[4] { "0", "1", "2", "3"};
-                        splitter = message.ReadString().ToString().Split(deliminators);
-
-                        //System.Diagnostics.Debug.WriteLine("ID REPORTED: " + splitter[3]);
-
-                        bool exists = false;
-                        for(int i = 0; i < playerLocations.Count; i++) {
-                            if(playerLocations[i].getID().ToString().Equals(splitter[3])) {
-                                playerLocations[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2]));
-                                exists = true;
-                            }
-                        }
-                        if (!exists) {
-                            System.Diagnostics.Debug.WriteLine("PLOC SIZE: " + playerLocations.Count);
-                            playerLocations.Add(new PlayerData(
-                                float.Parse(splitter[0]),
-                                float.Parse(splitter[1]),
-                                float.Parse(splitter[2]),
-                                int.Parse(splitter[3])));
-                        }
-                        break;
-
-                    case NetIncomingMessageType.StatusChanged:
-                        
-                        break;
-
-                    case NetIncomingMessageType.DebugMessage:
-                        System.Diagnostics.Debug.WriteLine(message.ReadString());
-                        break;
-
-                    default:
-                        System.Diagnostics.Debug.WriteLine("unhandled message with type: "
-                            + message.MessageType);
-                        break;
-                }
-            }
-            */
-            /*foreach(PlayerData pd in playerLocations) {          //Sender
-                mOut = server.CreateMessage();
-                mOut.Write(pd.dataString());
-                server.SendToAll(mOut, NetDeliveryMethod.ReliableOrdered);
-            }*/
-
-            //PutEarToDoor();
             base.Update(gameTime);
         }
 
@@ -259,14 +189,36 @@ namespace SpaceServer {
 
             StateObject state = new StateObject();
             state.workSocket = handler;
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                new AsyncCallback(TalkToTheHand), state);
+            try {
+                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(TalkToTheHand), state);
+            }catch (SocketException se) {
+                System.Diagnostics.Debug.WriteLine("Client connected but did not ping!\nERROR: " + se);
+            }
+        }
+
+        private void DeleteImposters() {
+            for (int i = 0; i < playerLocations.Count - 1; i++) {
+                int checker = playerLocations[i].getID();
+                if (playerLocations.Count > 1) {
+                    for (int k = i + 1; k < playerLocations.Count - 1; i++) {
+                        if (playerLocations[k].getID() == checker) {
+                            playerLocations.RemoveAt(k);
+                            System.Diagnostics.Debug.WriteLine("IMPOSTER NULLIFIED");
+                        }
+                    }
+                }
+            }
+        }
+
+        private void Truncate(string[] str, int pos) {
+            for(int i = pos; i < str.Length; i++) {
+                str[i] = null;
+            }
         }
 
         public void TalkToTheHand(IAsyncResult ar) {
             StateObject state = (StateObject)ar.AsyncState;
-            //TcpClient tcpClient = state.newClient;
-            //NetworkStream clientStream = tcpClient.GetStream();
             Socket handler = state.workSocket;
             ASCIIEncoding encoder = new ASCIIEncoding();
 
@@ -276,72 +228,76 @@ namespace SpaceServer {
             int bytesRead = handler.EndReceive(ar);
             String content = String.Empty;
 
-            //if (tcpClient.GetStream().DataAvailable) {
             if(bytesRead > 0) {
-                /*while (true) {
-                    //System.Diagnostics.Debug.WriteLine("SERVER: looping");
-                    bytesRead = 0;
-                    try {
-                        bytesRead = clientStream.Read(message, 0, 4096);
-                        //System.Diagnostics.Debug.WriteLine("SERVER: READING: " + bytesRead.ToString());
-                    } catch {
-                        System.Diagnostics.Debug.WriteLine("SERVER: Neighbour was an asshole. ");
-                        break;
-                    }
-                    if (bytesRead == 0) {
-                        System.Diagnostics.Debug.WriteLine("SERVER: Neighbour ditched us. ");
-                        break;
-                    }*/
                 state.sb.Append(encoder.GetString(state.buffer, 0, bytesRead));
 
                 content = state.sb.ToString();
+
                 if (content.IndexOf("<EOF>") > -1) {
-                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
+                    System.Diagnostics.Debug.WriteLine("SERVER: Read {0} bytes from socket. \n Data : {1}",
                         content.Length, content);
                     
-                    System.Diagnostics.Debug.WriteLine("RECIEVED: " + Content);
+                    System.Diagnostics.Debug.WriteLine("SERVER-RECIEVED: RECIEVED: " + Content);
                 } else {
                     handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                     new AsyncCallback(TalkToTheHand), state);
                 }
-                
-                String rec = encoder.GetString(message, 0, bytesRead);
-                    //System.Diagnostics.Debug.WriteLine("SERVER-RECIEVED: " + rec);
 
-                    splitter = new string[4] { "0", "1", "2", "3" };
-                    if(rec.Length > 3)splitter = rec.Split(deliminators);
+                state.sb.Clear();
 
-                    //System.Diagnostics.Debug.WriteLine("SERVER: ID REPORTED FROM CLIENT: " + splitter[3]);
+                String rec = content;
+                if (rec.Length > 1) System.Diagnostics.Debug.WriteLine("REC READ AS: " + rec);
+                splitter = new string[4] { "0", "1", "2", "3" };
+                if(rec.Length > 4)splitter = rec.Split(deliminators);
+                List<string> splitterList = new List<string>{ splitter[0], splitter[1], splitter[2], splitter[3] };
 
-                    bool exists = false;
-                    for (int i = 0; i < playerLocations.Count - 1; i++) {
-                        if (playerLocations[i].getID().ToString().Equals(splitter[3])) {
-                            playerLocations[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2]));
-                            exists = true;
+                try {
+                    if (rec.Length > 2) {
+                        bool exists = false;
+
+                        for (int i = 0; i < playerLocations.Count - 1; i++) {
+                            if (playerLocations[i].getID().ToString().Equals(splitterList[3])) {
+                                playerLocations[i].setCoords(float.Parse(splitterList[0]), float.Parse(splitterList[1]), float.Parse(splitterList[2]));
+                                System.Diagnostics.Debug.WriteLine("SERVER: UPDATED DATA OF PLAYER " + splitterList[3]);
+                                exists = true;
+                            }
                         }
-                    }
-                    if (!exists && splitter[0] != null) {
-                        try {
-                            System.Diagnostics.Debug.WriteLine("SERVER: ADDING MOVINGOBJECT TO REGISTRY: " + (playerLocations.Count + 1) + "\n" + splitter[3]);
-                            playerLocations.Add(new PlayerData(
-                                float.Parse(splitter[0]),
-                                float.Parse(splitter[1]),
-                                float.Parse(splitter[2]),
-                                int.Parse(splitter[3])));
-                        }catch {
-                            System.Diagnostics.Debug.WriteLine("SERVER: FAILED TO ADD TO REGISTRY" + "\n        " + rec);
-                            
+
+                        for (int i = 0; i < playerLocations.Count - 1; i++) {
+                            if (playerLocations[i].getID() == int.Parse(splitterList[3])) {
+                                exists = true;
+                                //System.Diagnostics.Debug.WriteLine("MATCH FOUND VIA INT CHECK");
+                            }
                         }
+
+                        if (!exists && splitterList[3] != null && !IDS.Contains(int.Parse(splitterList[3]))) {
+                            IDS.Add(int.Parse(splitterList[3]));
+                            try {
+                                System.Diagnostics.Debug.WriteLine("SERVER: ADDING MOVINGOBJECT TO REGISTRY: " + (playerLocations.Count + 1) + "\n" + splitterList[3]);
+                                playerLocations.Add(new PlayerData(
+                                    float.Parse(splitterList[0]),
+                                    float.Parse(splitterList[1]),
+                                    float.Parse(splitterList[2]),
+                                    int.Parse(splitterList[3])));
+                            } catch (System.IndexOutOfRangeException exc) {
+                                System.Diagnostics.Debug.WriteLine("SERVER: FAILED TO ADD TO REGISTRY" + "\n    REC:" + rec + "\nSERVER-EXCEPTION: " + exc);
+                            }
+                        }
+
+                        DeleteImposters();
                     }
-                    //Stream writer = tcpClient.GetStream();
-                    for (int i = 0; i < playerLocations.Count; i++) {
-                        byte[] b = encoder.GetBytes(playerLocations[i].dataString());
-                        //clientStream.Write(b, 0, b.Length);
-                        System.Diagnostics.Debug.WriteLine("SERVER: Sending PlayerData no. " + i + "\n        " + playerLocations[i].dataString());
-                    }
+                }catch (System.FormatException ex) {
+                    System.Diagnostics.Debug.WriteLine("SERVER: Could not process due to FormatException.");
                 }
+                    //Send all player information back to clients
+                for (int i = 0; i < playerLocations.Count - 1; i++) {
+                    byte[] b = encoder.GetBytes(playerLocations[i].dataString());
+                    //clientStream.Write(b, 0, b.Length);
+                    System.Diagnostics.Debug.WriteLine("SERVER: Sending PlayerData no. " + i + "\n        " + playerLocations[i].dataString());
+                }
+            }
             
-            System.Diagnostics.Debug.WriteLine("Past while loop ");
+            //System.Diagnostics.Debug.WriteLine("Past while loop ");
 
             //tcpClient.Close();
         }
