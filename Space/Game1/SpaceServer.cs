@@ -56,7 +56,7 @@ namespace SpaceServer {
         protected override void Initialize() {
             this.IsMouseVisible = true;
 
-            IPAddress IP = IPAddress.Parse("192.168.1.244");
+            IPAddress IP = IPAddress.Parse("192.168.0.13"); //LOGAN TEST
 
             listener = new Socket(AddressFamily.InterNetwork,
             SocketType.Stream, ProtocolType.Tcp);
