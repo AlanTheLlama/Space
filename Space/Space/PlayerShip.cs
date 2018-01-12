@@ -10,7 +10,7 @@ namespace Space
 {
     public class PlayerShip : MovingObject {
         public float MAX_SPEED = 9;
-        public float COOLDOWN = 30;
+        public float COOLDOWN = 20;
 
         // MOVEMENT
         public Vector2 pos;
@@ -181,7 +181,7 @@ namespace Space
                 float y = mouse.Y - 240;
                 Vector2 angle = Math2.getUnitVector(x, y);
                 Laser laser = new Laser(this.pos, this.weapons, angle);
-                this.weaponCooldown = 20;
+                this.weaponCooldown = COOLDOWN;
                 System.Diagnostics.Debug.WriteLine(mouse.X.ToString()+ ", " + mouse.Y.ToString());
                 return laser;
             }
