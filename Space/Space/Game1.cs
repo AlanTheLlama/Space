@@ -135,32 +135,49 @@ namespace Space {
                 connectToServer();
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.W) == true) {
-                player.thrust();
+            if (!player.isLanding()) {
+                if (Keyboard.GetState().IsKeyDown(Keys.W) == true) {
+                    player.thrust();
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.S) == true) {
+                    player.reverse();
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.D) == true) {
+                    player.rotateRight();
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.A) == true) {
+                    player.rotateLeft();
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.Q) == true) {
+                    player.leftThrust();
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.E) == true) {
+                    player.rightThrust();
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.Space) == true) {
+                    player.brake();
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.H) == true && player.getSpeed() < player.MAX_SPEED_TO_LAND) {
+                    List<SpaceObject> spaceObjects = world.getSpaceObjects();
+                    for (int index = 0; index < spaceObjects.Count; index++) {
+                        if (Math2.inRadius(player.getPos().X, player.getPos().Y,
+                            spaceObjects[index].getXpos(), spaceObjects[index].getYpos(), spaceObjects[index].getRadius())) {
+                            player.land(spaceObjects[index]);
+                            index = spaceObjects.Count;
+                        }
+                    }
+                }
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.S) == true) {
-                player.reverse();
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.D) == true) {
-                player.rotateRight();
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.A) == true) {
-                player.rotateLeft();
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Q) == true) {
-                player.leftThrust();
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.E) == true) {
-                player.rightThrust();
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Space) == true) {
-                player.brake();
+            if (Keyboard.GetState().IsKeyDown(Keys.G) == true) {
+                player.takeOff();
             }
 
             if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
@@ -203,9 +220,9 @@ namespace Space {
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
 
-            foreach (SpaceObject obj in World.spaceObjects) {        //static objects
+            foreach (SpaceObject obj in world.getSpaceObjects()) {        //static objects
                 spriteBatch.Draw(obj.getImage(),
-                    new Rectangle(obj.getXpos(), obj.getYpos(), 50, 50),
+                    new Rectangle((int)obj.getXpos(), (int)obj.getYpos(), 50, 50),
                     Color.White);
             }
 

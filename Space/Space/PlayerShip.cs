@@ -11,6 +11,7 @@ namespace Space
     public class PlayerShip : MovingObject {
         public float MAX_SPEED = 9;
         public float COOLDOWN = 20;
+        public float MAX_SPEED_TO_LAND = 2;
 
         // MOVEMENT
         public Vector2 pos;
@@ -23,8 +24,12 @@ namespace Space
         public float sideForce;
         public float mass;
 
-        // SERVER
+        // STATUS
         public bool initialized;
+        public bool landing;
+        public SpaceObject landedOn;
+
+        // SERVER
         public int identifier;
         Random r = new Random();
 
@@ -50,6 +55,8 @@ namespace Space
             this.mass = 5;
 
             this.initialized = true;
+            this.landing = false;
+
             this.identifier = r.Next(0, 1000000);
 
             this.power = 10;
@@ -69,12 +76,31 @@ namespace Space
         public int getID() {
             return identifier;
         }
+
         public float getRot() {
             return this.aimRotation;
         }
+
+        public Vector2 getPos() {
+            return this.pos;
+        }
+
+        public ObjectType getType() {
+            return type;
+        }
+
+        public float getAngle() {
+            return this.aimRotation;
+        }
+
+        public Texture2D GetTexture() {
+            return Game1.ship;
+        }
+
         public string dataString() {
             return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString() + "/";
         }
+
         public void setCoords(float x, float y, float rot) {
             this.pos = new Vector2(x, y);
             this.aimRotation = rot;
@@ -189,26 +215,40 @@ namespace Space
         }
 
         public void update(World w) {
+            if (this.landing && this.getSpeed() > 0) {
+                this.brake();
+            }
+            if (landedOn != null) {
+                if (!Math2.inRadius(this.pos.X, this.pos.Y, landedOn.getXpos(), landedOn.getYpos(), landedOn.getRadius())) {
+                    this.takeOff();
+                }
+            }
+
             updatePosition(w);
             if (weaponCooldown > 0) {
                 this.weaponCooldown--;
             }
         }
 
-        public Vector2 getPos() {
-            return this.pos;
+        public void land(SpaceObject so) {
+            if (!landing) {
+                landing = true;
+            }
+            if (this.getSpeed() > 0) {
+                this.brake();
+            }
+            this.landedOn = so;
         }
 
-        public ObjectType getType() {
-            return type;
+        public void takeOff() {
+            if (landing) {
+                landing = false;
+            }
+            this.landedOn = null;
         }
 
-        public float getAngle() {
-            return this.aimRotation;
-        }
-
-        public Texture2D GetTexture() {
-            return Game1.ship;
+        public bool isLanding() {
+            return this.landing;
         }
     }
 }

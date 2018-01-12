@@ -21,5 +21,9 @@ namespace Space {
         public static float getQuadSum(float x, float y) {
             return (float)Math.Sqrt(x * x + y * y);
         }
+
+        public static bool inRadius(float x1, float y1, float x2, float y2, float radius) {
+            return ((float)Math2.getQuadSum(x2 - x1, y2 - y1)) < radius;
+        }
     }
 }
