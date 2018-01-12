@@ -105,17 +105,6 @@ namespace SpaceServer {
             base.Update(gameTime);
         }
 
-        public void PutEarToDoor() {
-            this.tcpListen.Start();
-            while (true) {
-                System.Diagnostics.Debug.WriteLine("Listening");
-                TcpClient client = this.tcpListen.AcceptTcpClient();
-
-                //Thread clientThread = new Thread(new ParameterizedThreadStart(TalkToTheHand));
-                //clientThread.Start(client);
-            }
-        }
-
         /*public void LoopClients() {
             System.Diagnostics.Debug.WriteLine("LoopClients");
             while (running) {
