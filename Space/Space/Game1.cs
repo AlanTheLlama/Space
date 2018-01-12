@@ -188,7 +188,7 @@ namespace Space {
                 mo.update(world);
             }
 
-            connectToServer();
+            //connectToServer();
             cam.UpdateCamera(viewport);
             base.Update(gameTime);
         }
