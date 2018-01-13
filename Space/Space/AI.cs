@@ -4,48 +4,93 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Space {
-    public class AI {
+    public class AI : MovingObject {
 
-        public float MAX_SPEED = 4;
+        private float MAX_SPEED = 4;
 
         //MOVEMENT 
-        public Vector2 pos;
-        public Vector2 velocity;
-        public float aimRotation;
-        public float rotSpeed;
-        public float curveSpeed;
-        public float forwardForce;
-        public float backwardForce;
-        public float sideForce;
-        public float mass;
-
+        private Vector2 pos;
+        private Vector2 velocity;
+        private float aimRotation;
+        private float rotSpeed;
+        private float forwardForce;
+        private float backwardForce;
+        private float sideForce;
+        private float mass;
 
         //NON MOVEMENT
-        public Vector2 change;
-        public float dist;
+        private Vector2 change;
+        private float dist;
+
+        //SERVER
+        private int identifier;
+        Random r = new Random();
+        private ObjectType type;
+
+        //GAMEPLAY
+        private float radius;
+        private float shield;
+        private bool alive;
 
         public AI (int x, int y) { 
             this.pos = new Vector2(x, y);
             this.aimRotation = (float)0.5 * (float)Math.PI;           //don't press enter.
             this.velocity = new Vector2(0, 0);
             this.rotSpeed = (float)0.15;
-            this.curveSpeed = (float)0.05;
             this.forwardForce = (float)2; 
             this.backwardForce = (float)1; 
             this.sideForce = (float)0.5;
             this.mass = 50;
+
+            this.identifier = r.Next(0, 1000000);
+            this.type = ObjectType.AI;
+
+            this.radius = 32;
+            this.shield = 100;
+            this.alive = true;
         }
-        public Vector2 thisPos() {
-            return pos;
-        }
-        //ALL THE NEW MOVEMENT SYSTEM
+
+        //GETTERS/SETTERS
+
         public float getRot()
         {
             return this.aimRotation;
         }
+
+        public int getID() {
+            return identifier;
+        }
+
+        public Vector2 getPos() {
+            return this.pos;
+        }
+
+        public ObjectType getType() {
+            return this.type;
+        }
+
+        public float getAngle() {
+            return this.aimRotation;
+        }
+
+        public Texture2D getTexture() {
+            return MainClient.enemy;
+        }
+
+        public void setCoords(float x, float y, float rot) {
+            this.pos = new Vector2(x, y);
+            this.aimRotation = rot;
+        }
+
+        public bool isAlive() {
+            return this.alive;
+        }
+
+        //MOVEMENT
+
         public void rotateRight()
         {
             this.aimRotation = this.aimRotation + this.rotSpeed;
@@ -136,6 +181,7 @@ namespace Space {
                 this.velocity.Y = 0;
             }
         }
+
         public void updatePosition(World w)
         {
             Vector2 vec = new Vector2(this.pos.X + this.velocity.X, this.pos.Y + this.velocity.Y);
@@ -151,25 +197,31 @@ namespace Space {
             }
             this.pos = new Vector2(x, y);
         }
+
         public void update(World w)
         {
-            updatePosition(w);
+            this.updatePosition(w);
+            this.nearby();
         }
 
         public float getSpeed()
         {
             return (float)Math.Sqrt(this.velocity.X * this.velocity.X + this.velocity.Y * this.velocity.Y);
         }
+
         public void distToo(MovingObject mo)
         {
             change.X = mo.getPos().X - this.pos.X;
             change.Y = mo.getPos().Y - this.pos.Y;
             dist = (float)Math.Sqrt(change.X * change.X + change.Y * change.Y);
         }
+
+        //GAMEPLAY
+
         public bool danger() {
-            foreach (MovingObject mo in MainClient.movingObjects) {
-                if (mo.getType() == ObjectType.PLAYER) {
-                    distToo(mo);
+            foreach (Object o in MainClient.objects) {
+                if (o.getType() == ObjectType.PLAYER) {
+                    distToo((MovingObject)o);
                     if (dist <= 200) {
                         return true;
                     }
@@ -185,6 +237,17 @@ namespace Space {
             }
             else if (!danger() && this.getSpeed() > 0) {
                 brake();
+            }
+        }
+
+        public bool isHit(Object o) {
+            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+        }
+
+        public void getHit(float power) {
+            this.shield -= power;
+            if (this.shield <= 0) {
+                this.alive = false;
             }
         }
     }

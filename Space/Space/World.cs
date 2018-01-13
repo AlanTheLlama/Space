@@ -33,10 +33,10 @@ namespace Space {
                 int x = r.Next(0, SizeX);
                 int y = r.Next(0, SizeY);
 
-                if (type == 1) spaceObjects.Add(new Asteroid(x, y, 100));
-                if (type == 2) spaceObjects.Add(new Asteroid(x, y, 100)); //only one type of SpaceObject rn lol
-                if (type == 3) spaceObjects.Add(new Asteroid(x, y, 100));
-                if (type == 4) spaceObjects.Add(new Asteroid(x, y, 100));
+                if (type == 1) spaceObjects.Add(new Asteroid(x, y, 30));
+                if (type == 2) spaceObjects.Add(new Asteroid(x, y, 30)); //only one type of SpaceObject rn lol
+                if (type == 3) spaceObjects.Add(new Asteroid(x, y, 30));
+                if (type == 4) spaceObjects.Add(new Asteroid(x, y, 30));
             }
         }
 

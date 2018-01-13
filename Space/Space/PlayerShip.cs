@@ -9,35 +9,36 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Space
 {
     public class PlayerShip : MovingObject {
-        public float MAX_SPEED = 9;
+        public float MAX_SPEED = 7;
         public float COOLDOWN = 20;
         public float MAX_SPEED_TO_LAND = 2;
 
         // MOVEMENT
-        public Vector2 pos;
-        public Vector2 velocity;
-        public float aimRotation;
-        public float rotSpeed;
-        public float curveSpeed;
-        public float forwardForce;
-        public float backwardForce;
-        public float sideForce;
-        public float mass;
+        private Vector2 pos;
+        private Vector2 velocity;
+        private float aimRotation;
+        private float rotSpeed;
+        private float forwardForce;
+        private float backwardForce;
+        private float sideForce;
+        private float mass;
 
         // STATUS
-        public bool initialized;
-        public bool landing;
-        public SpaceObject landedOn;
+        private bool initialized;
+        private bool landing;
+        private SpaceObject landedOn;
+        private bool alive;
 
         // SERVER
-        public int identifier;
+        private int identifier;
         Random r = new Random();
 
         // STATS (not implemented yet)
-        public float power;
-        public float shield;
-        public float weapons;
-        public float weaponCooldown;
+        private float power;
+        private float shield;
+        private float weapons;
+        private float weaponCooldown;
+        private float radius;
 
         //DEFINITION
         private ObjectType type;
@@ -48,7 +49,6 @@ namespace Space
             this.aimRotation = (float)0.5 * (float)Math.PI;           //don't press enter.
             this.velocity = new Vector2(0, 0);
             this.rotSpeed = (float)0.15;
-            this.curveSpeed = (float)0.05;
             this.forwardForce = (float)2;
             this.backwardForce = (float)1;
             this.sideForce = (float)0.5;
@@ -56,13 +56,14 @@ namespace Space
 
             this.initialized = true;
             this.landing = false;
+            this.alive = true;
 
             this.identifier = r.Next(0, 1000000);
-
-            this.power = 10;
-            this.shield = 2;
-            this.weapons = 8;
+            
+            this.shield = 100;
+            this.weapons = 12;
             this.weaponCooldown = 0;
+            this.radius = 20;
 
             type = ObjectType.PLAYER;
         }
@@ -72,6 +73,8 @@ namespace Space
             aimRotation = rot;
             identifier = id;
         }
+
+        //GETTERS/SETTERS
 
         public int getID() {
             return identifier;
@@ -93,18 +96,32 @@ namespace Space
             return this.aimRotation;
         }
 
-        public Texture2D GetTexture() {
+        public Texture2D getTexture() {
             return MainClient.ship;
+        }
+
+        public bool isInitialized() {
+            return this.initialized;
         }
 
         public string dataString() {
             return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString() + ";";
         }
 
+        public bool isLanding() {
+            return this.landing;
+        }
+
         public void setCoords(float x, float y, float rot) {
             this.pos = new Vector2(x, y);
             this.aimRotation = rot;
         }
+
+        public bool isAlive() {
+            return this.alive;
+        }
+
+        //MOVEMENT
 
         public void rotateRight()
         {
@@ -175,10 +192,10 @@ namespace Space
         public void brake() {
             this.velocity.X = this.velocity.X - this.velocity.X * this.backwardForce / (this.mass * this.getSpeed());
             this.velocity.Y = this.velocity.Y - this.velocity.Y * this.backwardForce / (this.mass * this.getSpeed());
-            if (Math.Abs(this.velocity.X) < 0) {
+            if (Math.Abs(this.velocity.X) < 0.05) {
                 this.velocity.X = 0;
             }
-            if (Math.Abs(this.velocity.Y) < 0) {
+            if (Math.Abs(this.velocity.Y) < 0.05) {
                 this.velocity.Y = 0;
             }
         }
@@ -201,14 +218,15 @@ namespace Space
             this.pos = new Vector2(x, y);
         }
 
+        //GAMEPLAY
+
         public Laser fireWeapon(Vector2 mouse) {
             if (weaponCooldown == 0) {
                 float x = mouse.X - 400;
                 float y = mouse.Y - 240;
                 Vector2 angle = Math2.getUnitVector(x, y);
-                Laser laser = new Laser(this.pos, this.weapons, angle);
+                Laser laser = new Laser(this.pos, this.weapons, angle, this.identifier);
                 this.weaponCooldown = COOLDOWN;
-                //System.Diagnostics.Debug.WriteLine(mouse.X.ToString()+ ", " + mouse.Y.ToString());
                 return laser;
             }
             return null;
@@ -219,7 +237,7 @@ namespace Space
                 this.brake();
             }
             if (landedOn != null) {
-                if (!Math2.inRadius(this.pos.X, this.pos.Y, landedOn.getXpos(), landedOn.getYpos(), landedOn.getRadius())) {
+                if (!Math2.inRadius(this.pos, landedOn.getPos(), landedOn.getRadius())) {
                     this.takeOff();
                 }
             }
@@ -247,8 +265,19 @@ namespace Space
             this.landedOn = null;
         }
 
-        public bool isLanding() {
-            return this.landing;
+        public bool isHit(Object o) {
+            Projectile p = (Projectile)o;
+            if (p.getOriginID() == this.identifier) {
+                return false;
+            }
+            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+        }
+
+        public void getHit(float power) {
+            this.shield -= power;
+            if (this.shield <= 0) {
+                this.alive = false;
+            }
         }
     }
 }

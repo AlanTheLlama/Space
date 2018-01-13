@@ -29,7 +29,7 @@ namespace Space {
 
         public World world;
 
-        public static List<MovingObject> movingObjects;
+        public static List<Object> objects;
         char[] deliminators = { ',', ' ', '/', ';'};
         string[] splitter;
         bool found;
@@ -50,8 +50,13 @@ namespace Space {
         }
 
         protected override void Initialize() {
+            objects = new List<Object>();
+
             world = new World(15000, 15000);
             world.Generate(600, 1000, 50);
+            foreach (SpaceObject so in world.getSpaceObjects()) {
+                objects.Add(so);
+            }
 
             handler = new ClientDataHandler();
 
@@ -61,8 +66,6 @@ namespace Space {
             dataTimer.Enabled = true;
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            movingObjects = new List<MovingObject>();
 
             viewport = GraphicsDevice.Viewport;
 
@@ -85,9 +88,10 @@ namespace Space {
             laserTex = Content.Load<Texture2D>("Images/laser");
 
             player = new PlayerShip(new Vector2(world.SizeX / 2, world.SizeY / 2));
-            movingObjects.Add(player);
-
             bob = new AI(7500, 7500);
+            objects.Add(player);
+            objects.Add(bob);
+
         }
 
         protected override void UnloadContent() {
@@ -141,8 +145,7 @@ namespace Space {
                 if (Keyboard.GetState().IsKeyDown(Keys.H) == true && player.getSpeed() < player.MAX_SPEED_TO_LAND) {
                     List<SpaceObject> spaceObjects = world.getSpaceObjects();
                     for (int index = 0; index < spaceObjects.Count; index++) {
-                        if (Math2.inRadius(player.getPos().X, player.getPos().Y,
-                            spaceObjects[index].getXpos(), spaceObjects[index].getYpos(), spaceObjects[index].getRadius())) {
+                        if (Math2.inRadius(player.getPos(), spaceObjects[index].getPos(), spaceObjects[index].getRadius())) {
                             player.land(spaceObjects[index]);
                             index = spaceObjects.Count;
                         }
@@ -157,15 +160,31 @@ namespace Space {
             if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
                 Laser l = player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
                 if (l != null) {
-                    movingObjects.Add(l);
+                    objects.Add(l);
                 }
             }
-            
-            bob.nearby();
-            bob.updatePosition(world);
 
-            foreach (MovingObject mo in movingObjects) {
-                mo.update(world);
+            List<Object> toBeDestroyed = new List<Object>();
+
+            foreach (Object o in objects) {
+                if (!o.isAlive()) {
+                    toBeDestroyed.Add(o);
+                } else {
+                    o.update(world);
+                    if (o.getType() == ObjectType.PROJECTILE) {
+                        foreach (Object o2 in objects) {
+                            Projectile p = (Projectile)o;
+                            if (o2.isHit(o)) {
+                                o.getHit(0);
+                                o2.getHit(p.getPower());
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (Object o in toBeDestroyed) {
+                objects.Remove(o);
             }
 
             //connectToServer();
@@ -187,23 +206,25 @@ namespace Space {
             //spriteBatch.GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
-
-            foreach (SpaceObject obj in world.getSpaceObjects()) {        //static objects
-                spriteBatch.Draw(obj.getImage(),
-                    new Rectangle((int)obj.getXpos(), (int)obj.getYpos(), 50, 50),
-                    Color.White);
-            }
+            /*
+            foreach (Object obj in objects) {        //static objects
+                if (obj.getType() == ObjectType.NO_INTERACTION_OBJECT) {
+                    spriteBatch.Draw(obj.getTexture(),
+                        new Rectangle((int)obj.getPos().X, (int)obj.getPos().Y, 50, 50),
+                        Color.White);
+                }
+            } */
 
             int i = 0;
-            foreach (MovingObject mo in movingObjects) {             //moving objects (duh)
-                spriteBatch.Draw(mo.GetTexture(),
-                    new Rectangle((int)mo.getPos().X, (int)mo.getPos().Y, mo.GetTexture().Width, mo.GetTexture().Height),
+            foreach (Object o in objects) {             //moving objects (duh)
+                spriteBatch.Draw(o.getTexture(),
+                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
                     null,
                     Color.White,
-                    mo.getAngle() + (float)0.5 * (float)Math.PI,
-                    new Vector2(mo.GetTexture().Width / 2, mo.GetTexture().Height / 2),
+                    o.getAngle() + (float)0.5 * (float)Math.PI,
+                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
                     SpriteEffects.None, 0);
-                spriteBatch.DrawString(font, movingObjects.Count.ToString() + ", " + movingObjects[i].getID().ToString(), new Vector2(-50, i * 20), Color.Black);
+                spriteBatch.DrawString(font, objects.Count.ToString() + ", " + objects[i].getID().ToString(), new Vector2(-50, i * 20), Color.Black);
                 i++;
             }
 
@@ -214,8 +235,6 @@ namespace Space {
             spriteBatch.Draw(testTile, new Rectangle(100, -300, 10, 10), Color.White);
             spriteBatch.Draw(asteroid, new Rectangle(50, 50, 50, 50), Color.White);
             spriteBatch.Draw(asteroid, new Rectangle(-50, 50, 100, 110), Color.White);
-
-            spriteBatch.Draw(enemy, bob.pos, Color.White);
 
             spriteBatch.End();
 
