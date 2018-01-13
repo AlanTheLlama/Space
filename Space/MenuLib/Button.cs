@@ -18,5 +18,9 @@ namespace MenuLib {
             this.height = height;
             this.tex = tex;
         }
+
+        public void Clicked() {
+
+        }
     }
 }

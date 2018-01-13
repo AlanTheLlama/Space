@@ -57,7 +57,7 @@ namespace Space {
 
             dataTimer = new Timer();
             dataTimer.Elapsed += new ElapsedEventHandler(exchangeData);
-            dataTimer.Interval = 5;
+            dataTimer.Interval = 25;
             dataTimer.Enabled = true;
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
