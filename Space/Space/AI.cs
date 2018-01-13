@@ -167,7 +167,7 @@ namespace Space {
             dist = (float)Math.Sqrt(change.X * change.X + change.Y * change.Y);
         }
         public bool danger() {
-            foreach (MovingObject mo in Game1.movingObjects) {
+            foreach (MovingObject mo in MainClient.movingObjects) {
                 if (mo.getType() == ObjectType.PLAYER) {
                     distToo(mo);
                     if (dist <= 200) {

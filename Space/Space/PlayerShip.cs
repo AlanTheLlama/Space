@@ -94,11 +94,11 @@ namespace Space
         }
 
         public Texture2D GetTexture() {
-            return Game1.ship;
+            return MainClient.ship;
         }
 
         public string dataString() {
-            return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString() + "/";
+            return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString() + ";";
         }
 
         public void setCoords(float x, float y, float rot) {
@@ -208,7 +208,7 @@ namespace Space
                 Vector2 angle = Math2.getUnitVector(x, y);
                 Laser laser = new Laser(this.pos, this.weapons, angle);
                 this.weaponCooldown = COOLDOWN;
-                System.Diagnostics.Debug.WriteLine(mouse.X.ToString()+ ", " + mouse.Y.ToString());
+                //System.Diagnostics.Debug.WriteLine(mouse.X.ToString()+ ", " + mouse.Y.ToString());
                 return laser;
             }
             return null;

@@ -12,7 +12,7 @@ namespace Space {
         private float radius;
 
         public Texture2D getImage() {
-            return Space.Game1.asteroid;
+            return Space.MainClient.asteroid;
         }
 
         public float getXpos() {

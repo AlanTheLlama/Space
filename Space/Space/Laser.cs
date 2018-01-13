@@ -65,7 +65,7 @@ namespace Space {
         }
 
         public Texture2D GetTexture() {
-            return Game1.laserTex;
+            return MainClient.laserTex;
         }
     }
 }

@@ -13,13 +13,9 @@ using Microsoft.Xna.Framework.Input;
 namespace SpaceServer {
 
     public class StateObject {
-        // Client  socket.
         public Socket workSocket = null;
-        // Size of receive buffer.
         public const int BufferSize = 1024;
-        // Receive buffer.
         public byte[] buffer = new byte[BufferSize];
-        // Received data string.
         public StringBuilder sb = new StringBuilder();
         public TcpClient newClient = new TcpClient();
     }
@@ -27,26 +23,18 @@ namespace SpaceServer {
     public class SpaceServer : Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        NetPeerConfiguration config;
-        NetServer server;
-        NetIncomingMessage message;
-        NetOutgoingMessage mOut;
         SpriteFont font;
         List<PlayerData> playerLocations;
         List<int> IDS;
 
-        TcpListener tcpListen;
         Socket listener;
-        Thread listenThread;
-        
         Texture2D startButton;
 
         Rectangle sBRect;
 
         string[] splitter;
-        char[] deliminators = { ',', ' ', '/', ';' };
-        string serverStatus;
-        bool running;
+        char[] deliminators = { ',', ' ', '/' };
+        char terminator = ';';
 
         public SpaceServer() {
             graphics = new GraphicsDeviceManager(this);
@@ -56,7 +44,7 @@ namespace SpaceServer {
         protected override void Initialize() {
             this.IsMouseVisible = true;
 
-            IPAddress IP = IPAddress.Parse("192.168.1.244"); //LOGAN TEST
+            IPAddress IP = IPAddress.Parse("192.168.1.244");
 
             listener = new Socket(AddressFamily.InterNetwork,
             SocketType.Stream, ProtocolType.Tcp);
@@ -64,9 +52,6 @@ namespace SpaceServer {
             listener.Bind(new IPEndPoint(IP, 31579));
             listener.Listen(100);
 
-            //System.Diagnostics.Debug.WriteLine("Starting listener");
-            //running = true;
-            //Thread listenerThread = new Thread(new ThreadStart(() => LoopClients()));
             System.Diagnostics.Debug.WriteLine("Started Listener Successfully");
 
             base.Initialize();
@@ -94,10 +79,6 @@ namespace SpaceServer {
                 Exit();
             var mState = Mouse.GetState();
             var mPos = new Point(mState.X, mState.Y);
-
-            /*if (sBRect.Contains(mPos) && mState.LeftButton == ButtonState.Pressed && server.Status != NetPeerStatus.Starting && server.Status != NetPeerStatus.Running) {
-                //server.Start();
-            }*/
 
             TcpClient newClient;
             listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
@@ -200,18 +181,11 @@ namespace SpaceServer {
             }
         }
 
-        private void Truncate(string[] str, int pos) {
-            for(int i = pos; i < str.Length; i++) {
-                str[i] = null;
-            }
-        }
-
         public void TalkToTheHand(IAsyncResult ar) {
             StateObject state = (StateObject)ar.AsyncState;
             Socket handler = state.workSocket;
             ASCIIEncoding encoder = new ASCIIEncoding();
 
-            System.Diagnostics.Debug.WriteLine("SERVER: Count of " + playerLocations.Count);
             byte[] buffer = encoder.GetBytes("Server recieves message!");
             byte[] message = new byte[4096];
             int bytesRead = handler.EndReceive(ar);
@@ -235,16 +209,17 @@ namespace SpaceServer {
                 state.sb.Clear();
 
                 String rec = content;
-                if (rec.Length > 1) System.Diagnostics.Debug.WriteLine("REC READ AS: " + rec);
-                splitter = new string[4] { "0", "1", "2", "3" };
-                if(rec.Length > 4)splitter = rec.Split(deliminators);
-                List<string> splitterList = new List<string>{ splitter[0], splitter[1], splitter[2], splitter[3] };
+                splitter = new string[4] { "0", "1", "2", "3" };  //failsafe before anything even happens
+                rec = rec.Split(terminator)[0];
+                if (rec.Length > 4)splitter = rec.Split(deliminators); //failsafe #1
 
+                List<string> splitterList = new List<string>{ splitter[0], splitter[1], splitter[2], splitter[3] }; //failsafe #2
+                
                 try {
                     if (rec.Length > 2) {
                         bool exists = false;
 
-                        for (int i = 0; i < playerLocations.Count - 1; i++) {
+                        for (int i = 0; i < playerLocations.Count; i++) {
                             if (playerLocations[i].getID().ToString().Equals(splitterList[3])) {
                                 playerLocations[i].setCoords(float.Parse(splitterList[0]), float.Parse(splitterList[1]), float.Parse(splitterList[2]));
                                 System.Diagnostics.Debug.WriteLine("SERVER: UPDATED DATA OF PLAYER " + splitterList[3]);
@@ -255,14 +230,13 @@ namespace SpaceServer {
                         for (int i = 0; i < playerLocations.Count - 1; i++) {
                             if (playerLocations[i].getID() == int.Parse(splitterList[3])) {
                                 exists = true;
-                                //System.Diagnostics.Debug.WriteLine("MATCH FOUND VIA INT CHECK");
                             }
                         }
 
                         if (!exists && splitterList[3] != null && !IDS.Contains(int.Parse(splitterList[3]))) {
                             IDS.Add(int.Parse(splitterList[3]));
                             try {
-                                System.Diagnostics.Debug.WriteLine("SERVER: ADDING MOVINGOBJECT TO REGISTRY: " + (playerLocations.Count + 1) + "\n" + splitterList[3]);
+                                System.Diagnostics.Debug.WriteLine("SERVER: ADDING MOVINGOBJECT TO REGISTRY: " + (playerLocations.Count + 1) + "\nID:" + splitterList[3]);
                                 playerLocations.Add(new PlayerData(
                                     float.Parse(splitterList[0]),
                                     float.Parse(splitterList[1]),
@@ -278,19 +252,29 @@ namespace SpaceServer {
                 }catch (System.FormatException ex) {
                     System.Diagnostics.Debug.WriteLine("SERVER: Could not process due to FormatException.");
                 }
-                    //Send all player information back to clients
-                for (int i = 0; i < playerLocations.Count - 1; i++) {
-                    byte[] b = encoder.GetBytes(playerLocations[i].dataString());
-                    //clientStream.Write(b, 0, b.Length);
-                    System.Diagnostics.Debug.WriteLine("SERVER: Sending PlayerData no. " + i + "\n        " + playerLocations[i].dataString());
-                }
             }
-            
-            //System.Diagnostics.Debug.WriteLine("Past while loop ");
+            System.Diagnostics.Debug.WriteLine("SERVER: past while with list size " + playerLocations.Count);
+            //Send all player information back to clients
+            for (int i = 0; i < playerLocations.Count; i++) {
+                byte[] b = encoder.GetBytes(playerLocations[i].dataString());
+                System.Diagnostics.Debug.WriteLine("SERVER: Sending PlayerData no. " + i + "\n        " + playerLocations[i].dataString());
 
-            //tcpClient.Close();
+                handler.BeginSend(b, 0, b.Length, 0,
+                    new AsyncCallback(SendCallback), handler);
+            }
         }
-        
+
+        private static void SendCallback(IAsyncResult ar) {
+            try {
+                Socket handler = (Socket)ar.AsyncState;
+
+                int bytesSent = handler.EndSend(ar);
+
+            } catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine(e.ToString());
+            }
+        }
+
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.GraphicsDevice.Clear(Color.CornflowerBlue);
