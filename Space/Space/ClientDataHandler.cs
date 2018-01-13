@@ -26,10 +26,10 @@ namespace Space {
 
         public ClientDataHandler() {
             client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            //ipHostInfo = Dns.GetHostEntry("frankensquad.zapto.org"); //Joel's DDNS
-            //ipAddress = ipHostInfo.AddressList[0];
-            //remoteEP = new IPEndPoint(ipAddress, 31579);
-            remoteEP = new IPEndPoint(IPAddress.Parse("207.216.252.138"), 31579);
+            ipHostInfo = Dns.GetHostEntry("frankensquad.zapto.org"); //Joel's DDNS
+            ipAddress = ipHostInfo.AddressList[0];
+            remoteEP = new IPEndPoint(ipAddress, 31579);
+            //remoteEP = new IPEndPoint(IPAddress.Parse("207.216.252.138"), 31579);
         }
 
         public bool isConnected() { return connected; }
@@ -48,12 +48,12 @@ namespace Space {
         }
 
         public void AcceptCallback(IAsyncResult ar) {
+            System.Diagnostics.Debug.WriteLine("Connected! Attempting handshake...");
+
             Socket handler = (Socket)ar.AsyncState;
             connected = true;
-            handler.EndConnect(ar);
-
-            System.Diagnostics.Debug.WriteLine("Connected!");
-
+            handler.EndConnect(ar);  
+            
             StateObject state = new StateObject();
             state.workSocket = handler;
             try {
