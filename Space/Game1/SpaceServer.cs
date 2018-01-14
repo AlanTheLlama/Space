@@ -9,6 +9,7 @@ using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MenuLib;
 
 namespace SpaceServer {
 
@@ -26,9 +27,10 @@ namespace SpaceServer {
         SpriteFont font;
         List<PlayerData> playerLocations;
         List<int> IDS;
+        Button startButton;
 
         Socket listener;
-        Texture2D startButton;
+        Texture2D startButtonTex;
 
         Rectangle sBRect;
 
@@ -64,9 +66,7 @@ namespace SpaceServer {
             System.Diagnostics.Debug.WriteLine("SpriteBatch started");
             font = Content.Load<SpriteFont>("File");
 
-            startButton = Content.Load<Texture2D>("startButton");
-
-            sBRect = new Rectangle(10, GraphicsDevice.PresentationParameters.Bounds.Height - 30, 50, 20);
+            startButton = new Button(Content.Load<Texture2D>("startButton"), "Start", 10, GraphicsDevice.PresentationParameters.Bounds.Height - 30, 50, 20);
 
             playerLocations = new List<PlayerData>();
             IDS = new List<int>() { 0 };
@@ -79,8 +79,7 @@ namespace SpaceServer {
         protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            var mState = Mouse.GetState();
-            var mPos = new Point(mState.X, mState.Y);
+            if (startButton.Clicked()) System.Diagnostics.Debug.WriteLine("Clicked!");
 
             base.Update(gameTime);
         }
@@ -215,7 +214,7 @@ namespace SpaceServer {
             spriteBatch.DrawString(font, "Status: " + playerLocations.Count, new Vector2(10, 10), Color.White);
 
             //buttons
-            spriteBatch.Draw(startButton, sBRect, Color.White);
+            spriteBatch.Draw(startButton.tex, startButton.bounds, Color.White);
 
             spriteBatch.End();
 
