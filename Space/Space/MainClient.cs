@@ -53,8 +53,8 @@ namespace Space {
         protected override void Initialize() {
             objects = new List<Object>();
 
-            world = new World(15000, 15000);
-            world.Generate(600, 1000, 50);
+            world = new World(100000, 100000);
+            world.Generate(5000, 6000);
             foreach (SpaceObject so in world.getSpaceObjects()) {
                 objects.Add(so);
             }
@@ -89,7 +89,7 @@ namespace Space {
             laserTex = Content.Load<Texture2D>("Images/laser");
             planet = Content.Load<Texture2D>("Images/planet");
 
-            player = new PlayerShip(new Vector2(world.SizeX / 2, world.SizeY / 2));
+            player = new PlayerShip(new Vector2(world.getSizeX() / 2, world.getSizeY() / 2));
             bob = new AI(7500, 7500);
             objects.Add(player);
             objects.Add(bob);
@@ -153,6 +153,14 @@ namespace Space {
                         }
                     }
                 }
+
+                if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
+                    Laser l = player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
+                    if (l != null) {
+                        objects.Add(l);
+                    }
+                }
+
             } else {
 
                 if (Keyboard.GetState().IsKeyDown(Keys.M) == true) {
@@ -161,13 +169,6 @@ namespace Space {
 
                 if (Keyboard.GetState().IsKeyDown(Keys.G) == true) {
                     player.takeOff();
-                }
-            }
-
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
-                Laser l = player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
-                if (l != null) {
-                    objects.Add(l);
                 }
             }
 

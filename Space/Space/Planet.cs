@@ -29,7 +29,7 @@ namespace Space {
             this.pos.X = x;
             this.pos.Y = y;
             this.radius = radius;
-            this.health = 100;
+            this.health = 10000;
             this.alive = true;
             this.type = ObjectType.MINING_PLANET;
 

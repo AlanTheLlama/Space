@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Space
 {
     public class PlayerShip : MovingObject {
-        public float MAX_SPEED = 7;
+        public float MAX_SPEED = 50;
         public float COOLDOWN = 20;
         public float MAX_SPEED_TO_LAND = 2;
 
@@ -210,10 +210,10 @@ namespace Space
             Vector2 vec = new Vector2(this.pos.X + this.velocity.X, this.pos.Y + this.velocity.Y);
             float x = this.pos.X;
             float y = this.pos.Y;
-            if (vec.X >= 0 || vec.X <= w.SizeX) {
+            if (vec.X >= 0 || vec.X <= w.getSizeX()) {
                 x = vec.X;
             }
-            if (vec.Y >= 0 || vec.Y <= w.SizeX) {
+            if (vec.Y >= 0 || vec.Y <= w.getSizeX()) {
                 y = vec.Y;
             }
             this.pos = new Vector2(x, y);
@@ -238,7 +238,7 @@ namespace Space
                 this.brake();
             }
             if (landedOn != null) {
-                if (!Math2.inRadius(this.pos, landedOn.getPos(), landedOn.getRadius())) {
+                if (!Math2.inRadius(this.pos, landedOn.getPos(), landedOn.getRadius()) || !landedOn.isAlive()) {
                     this.takeOff();
                 }
             }

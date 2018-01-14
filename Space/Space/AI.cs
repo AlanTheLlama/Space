@@ -187,11 +187,11 @@ namespace Space {
             Vector2 vec = new Vector2(this.pos.X + this.velocity.X, this.pos.Y + this.velocity.Y);
             float x = this.pos.X;
             float y = this.pos.Y;
-            if (vec.X >= 0 || vec.X <= w.SizeX)
+            if (vec.X >= 0 || vec.X <= w.getSizeX())
             {
                 x = vec.X;
             }
-            if (vec.Y >= 0 || vec.Y <= w.SizeX)
+            if (vec.Y >= 0 || vec.Y <= w.getSizeX())
             {
                 y = vec.Y;
             }
