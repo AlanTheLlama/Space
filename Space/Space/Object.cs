@@ -13,7 +13,8 @@ namespace Space {
         AI,
         PROJECTILE,
         ASTEROID,
-        MINING_PLANET
+        MINING_PLANET,
+        STAR
     };
 
     public interface Object {

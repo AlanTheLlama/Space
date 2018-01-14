@@ -9,8 +9,8 @@ namespace Space {
     public class World {
         private int MIN_DIST_FOR_ASTEROIDS = 200;
         private int MIN_DIST_FOR_PLANETS = 800;
-        private int MIN_DIST_FOR_GALAXIES = 4000;
-        private int GALAXY_RADIUS = 1500;
+        private int MIN_DIST_FOR_GALAXIES = 2000;
+        private int GALAXY_RADIUS = 1400;
 
         private int SizeX { get; set; }
         private int SizeY { get; set; }
@@ -42,10 +42,11 @@ namespace Space {
                 }
 
                 galaxyList[i] = new Vector2(x, y);
+                spaceObjects.Add(new Star(x, y, 400));
             }
 
             for(int i = 0; i < rInt; i++) {
-                int type = r.Next(1, 5);
+                int type = r.Next(1, 9);
                 if (type > 1) {
                     float radius = 100;
                     int x = r.Next(0, SizeX);

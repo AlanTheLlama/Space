@@ -40,6 +40,7 @@ namespace Space {
         public static Texture2D enemy;
         public static Texture2D laserTex;
         public static Texture2D planet;
+        public static Texture2D star;
 
         bool connected = false;
 
@@ -54,7 +55,7 @@ namespace Space {
             objects = new List<Object>();
 
             world = new World(100000, 100000);
-            world.Generate(5000, 6000);
+            world.Generate(10000, 12000);
             foreach (SpaceObject so in world.getSpaceObjects()) {
                 objects.Add(so);
             }
@@ -88,6 +89,7 @@ namespace Space {
             font = Content.Load<SpriteFont>("File");
             laserTex = Content.Load<Texture2D>("Images/laser");
             planet = Content.Load<Texture2D>("Images/planet");
+            star = Content.Load<Texture2D>("Images/star");
 
             player = new PlayerShip(new Vector2(world.getSizeX() / 2, world.getSizeY() / 2));
             bob = new AI(7500, 7500);
@@ -114,61 +116,62 @@ namespace Space {
                     System.Diagnostics.Debug.WriteLine("Could not connect!");
                 }
             }
+            if (player.isAlive()) {
+                if (!player.isLanding()) {
+                    if (Keyboard.GetState().IsKeyDown(Keys.W) == true) {
+                        player.thrust();
+                    }
 
-            if (!player.isLanding()) {
-                if (Keyboard.GetState().IsKeyDown(Keys.W) == true) {
-                    player.thrust();
-                }
+                    if (Keyboard.GetState().IsKeyDown(Keys.S) == true) {
+                        player.reverse();
+                    }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.S) == true) {
-                    player.reverse();
-                }
+                    if (Keyboard.GetState().IsKeyDown(Keys.D) == true) {
+                        player.rotateRight();
+                    }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.D) == true) {
-                    player.rotateRight();
-                }
+                    if (Keyboard.GetState().IsKeyDown(Keys.A) == true) {
+                        player.rotateLeft();
+                    }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.A) == true) {
-                    player.rotateLeft();
-                }
+                    if (Keyboard.GetState().IsKeyDown(Keys.Q) == true) {
+                        player.leftThrust();
+                    }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.Q) == true) {
-                    player.leftThrust();
-                }
+                    if (Keyboard.GetState().IsKeyDown(Keys.E) == true) {
+                        player.rightThrust();
+                    }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.E) == true) {
-                    player.rightThrust();
-                }
+                    if (Keyboard.GetState().IsKeyDown(Keys.Space) == true) {
+                        player.brake();
+                    }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.Space) == true) {
-                    player.brake();
-                }
-
-                if (Keyboard.GetState().IsKeyDown(Keys.H) == true && player.getSpeed() < player.MAX_SPEED_TO_LAND) {
-                    List<SpaceObject> spaceObjects = world.getSpaceObjects();
-                    for (int index = 0; index < spaceObjects.Count; index++) {
-                        if (Math2.inRadius(player.getPos(), spaceObjects[index].getPos(), spaceObjects[index].getRadius())) {
-                            player.land(spaceObjects[index]);
-                            index = spaceObjects.Count;
+                    if (Keyboard.GetState().IsKeyDown(Keys.H) == true && player.getSpeed() < player.MAX_SPEED_TO_LAND) {
+                        List<SpaceObject> spaceObjects = world.getSpaceObjects();
+                        for (int index = 0; index < spaceObjects.Count; index++) {
+                            if (Math2.inRadius(player.getPos(), spaceObjects[index].getPos(), spaceObjects[index].getRadius())) {
+                                player.land(spaceObjects[index]);
+                                index = spaceObjects.Count;
+                            }
                         }
                     }
-                }
 
-                if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
-                    Laser l = player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
-                    if (l != null) {
-                        objects.Add(l);
+                    if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
+                        Laser l = player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
+                        if (l != null) {
+                            objects.Add(l);
+                        }
                     }
-                }
 
-            } else {
+                } else {
 
-                if (Keyboard.GetState().IsKeyDown(Keys.M) == true) {
-                    player.mine();
-                }
+                    if (Keyboard.GetState().IsKeyDown(Keys.M) == true) {
+                        player.mine();
+                    }
 
-                if (Keyboard.GetState().IsKeyDown(Keys.G) == true) {
-                    player.takeOff();
+                    if (Keyboard.GetState().IsKeyDown(Keys.G) == true) {
+                        player.takeOff();
+                    }
                 }
             }
 

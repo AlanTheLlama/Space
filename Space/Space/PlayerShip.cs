@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Space
 {
     public class PlayerShip : MovingObject {
-        public float MAX_SPEED = 50;
+        public float MAX_SPEED = 7;
         public float COOLDOWN = 20;
         public float MAX_SPEED_TO_LAND = 2;
 
