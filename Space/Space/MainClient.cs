@@ -147,11 +147,12 @@ namespace Space {
                     }
 
                     if (Keyboard.GetState().IsKeyDown(Keys.H) == true && player.getSpeed() < player.MAX_SPEED_TO_LAND) {
-                        List<SpaceObject> spaceObjects = world.getSpaceObjects();
-                        for (int index = 0; index < spaceObjects.Count; index++) {
-                            if (Math2.inRadius(player.getPos(), spaceObjects[index].getPos(), spaceObjects[index].getRadius())) {
-                                player.land(spaceObjects[index]);
-                                index = spaceObjects.Count;
+                        for (int index = 0; index < objects.Count; index++) {
+                            if (objects[index].getType() == ObjectType.ASTEROID || objects[index].getType() == ObjectType.MINING_PLANET) {
+                                if (Math2.inRadius(player.getPos(), objects[index].getPos(), ((SpaceObject)objects[index]).getRadius())) {
+                                    player.land((SpaceObject)objects[index]);
+                                    index = objects.Count;
+                                }
                             }
                         }
                     }

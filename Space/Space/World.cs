@@ -9,14 +9,14 @@ namespace Space {
     public class World {
         private int MIN_DIST_FOR_ASTEROIDS = 200;
         private int MIN_DIST_FOR_PLANETS = 800;
-        private int MIN_DIST_FOR_GALAXIES = 2000;
-        private int GALAXY_RADIUS = 1400;
+        private int MIN_DIST_FOR_SOL_SYS = 2000;
+        private int SOL_SYS_RADIUS = 1400;
 
         private int SizeX { get; set; }
         private int SizeY { get; set; }
 
         private List<SpaceObject> spaceObjects;
-        private Vector2[] galaxyList;
+        private Vector2[] solarSystemList;
 
         public World(int sizeX, int sizeY)
         {
@@ -27,28 +27,28 @@ namespace Space {
         public void Generate(int densityMin, int densityMax) {
             Random r = new Random();
             int rInt = r.Next(densityMin, densityMax);
-            int galaxies = rInt / 25;
+            int solarSystems = rInt / 25;
 
             spaceObjects = new List<SpaceObject>();
-            galaxyList = new Vector2[galaxies];
+            solarSystemList = new Vector2[solarSystems];
 
-            for (int i = 0; i < galaxies; i++) {
+            for (int i = 0; i < solarSystems; i++) {
                 int x = r.Next(0, SizeX);
                 int y = r.Next(0, SizeY);
 
-                while (tooCloseGal(new Vector2(x, y), i)) {
+                while (tooCloseSolSys(new Vector2(x, y), i)) {
                     x = r.Next(0, SizeX);
                     y = r.Next(0, SizeY);
                 }
 
-                galaxyList[i] = new Vector2(x, y);
+                solarSystemList[i] = new Vector2(x, y);
                 spaceObjects.Add(new Star(x, y, 400));
             }
 
             for(int i = 0; i < rInt; i++) {
                 int type = r.Next(1, 9);
                 if (type > 1) {
-                    float radius = 100;
+                    float radius = 30;
                     int x = r.Next(0, SizeX);
                     int y = r.Next(0, SizeY);
 
@@ -59,16 +59,16 @@ namespace Space {
 
                     spaceObjects.Add(new Asteroid(x, y, radius));
                 } else {
-                    int gal = r.Next(0, galaxies);
-                    Vector2 center = galaxyList[gal];
+                    int solSys = r.Next(0, solarSystems);
+                    Vector2 center = solarSystemList[solSys];
 
-                    float radius = 30;
-                    int x = r.Next((int)center.X - GALAXY_RADIUS, (int)center.X + GALAXY_RADIUS);
-                    int y = r.Next((int)center.Y - GALAXY_RADIUS, (int)center.Y + GALAXY_RADIUS);
+                    float radius = 100;
+                    int x = r.Next((int)center.X - SOL_SYS_RADIUS, (int)center.X + SOL_SYS_RADIUS);
+                    int y = r.Next((int)center.Y - SOL_SYS_RADIUS, (int)center.Y + SOL_SYS_RADIUS);
 
                     while (tooCloseAst(new Vector2(x, y), radius)) {
-                        x = r.Next((int)center.X - GALAXY_RADIUS, (int)center.X + GALAXY_RADIUS);
-                        y = r.Next((int)center.Y - GALAXY_RADIUS, (int)center.Y + GALAXY_RADIUS);
+                        x = r.Next((int)center.X - SOL_SYS_RADIUS, (int)center.X + SOL_SYS_RADIUS);
+                        y = r.Next((int)center.Y - SOL_SYS_RADIUS, (int)center.Y + SOL_SYS_RADIUS);
                     }
 
                     spaceObjects.Add(new Planet(x, y, radius));
@@ -94,9 +94,9 @@ namespace Space {
             return false;
         }
 
-        private bool tooCloseGal(Vector2 newGal, int i) {
+        private bool tooCloseSolSys(Vector2 newSolSys, int i) {
             for (int index = 0; index < i; index++) {
-                if (Math2.inRadius(newGal, galaxyList[index], MIN_DIST_FOR_GALAXIES)) {
+                if (Math2.inRadius(newSolSys, solarSystemList[index], MIN_DIST_FOR_SOL_SYS)) {
                     return true;
                 }
             }
