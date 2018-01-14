@@ -26,6 +26,7 @@ namespace Space {
         AI bob;
 
         public float MAX_SPEED = 9;
+        public float RENDER_RADIUS = 2000;
 
         public World world;
 
@@ -236,7 +237,7 @@ namespace Space {
 
             int i = 0;
             foreach (Object o in objects) {
-                if (o.getType() != ObjectType.PLAYER) {
+                if (o.getType() != ObjectType.PLAYER && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
                     spriteBatch.Draw(o.getTexture(),
                         new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
                         null,
