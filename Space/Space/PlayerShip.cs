@@ -28,6 +28,8 @@ namespace Space
         private bool landing;
         private SpaceObject landedOn;
         private bool alive;
+        private bool boosting;
+        private bool cooling;
 
         private float iron;
         private float gems;
@@ -42,6 +44,7 @@ namespace Space
         private float weaponCooldown;
         private float radius;
         private float miningEquipment;
+        private float capacity;
 
         //DEFINITION
         private ObjectType type;
@@ -60,6 +63,8 @@ namespace Space
             this.initialized = true;
             this.landing = false;
             this.alive = true;
+            this.boosting = false;
+            this.cooling = false;
 
             this.iron = 0;
             this.gems = 0;
@@ -70,7 +75,8 @@ namespace Space
             this.weapons = 12;
             this.weaponCooldown = 0;
             this.radius = 20;
-            this.miningEquipment = 10;
+            this.miningEquipment = 4;
+            this.capacity = 100;
 
             type = ObjectType.PLAYER;
         }
@@ -128,6 +134,26 @@ namespace Space
             return this.alive;
         }
 
+        public float getIron() {
+            return this.iron;
+        }
+
+        public float getGems() {
+            return this.gems;
+        }
+
+        public float getCapacity() {
+            return this.capacity - this.iron - this.gems;
+        }
+
+        public bool isBoosting() {
+            return this.boosting;
+        }
+
+        public bool isCooling() {
+            return this.cooling;
+        }
+
         //MOVEMENT
 
         public void rotateRight()
@@ -150,10 +176,15 @@ namespace Space
         }
         public void thrust()
         {
-            this.velocity.X = this.velocity.X + (float)Math.Cos(this.aimRotation) * this.forwardForce / this.mass;
-            this.velocity.Y = this.velocity.Y + (float)Math.Sin(this.aimRotation) * this.forwardForce / this.mass;
-            if (this.getSpeed() > MAX_SPEED) {
-                this.scaleSpeed();
+            if (this.getSpeed() == 0) {
+                this.velocity.X = (float)Math.Cos(this.aimRotation) * this.forwardForce / this.mass;
+                this.velocity.Y = (float)Math.Sin(this.aimRotation) * this.forwardForce / this.mass;
+            } else {
+                this.velocity.X = this.velocity.X + (float)Math.Cos(this.aimRotation) * this.forwardForce / this.mass;
+                this.velocity.Y = this.velocity.Y + (float)Math.Sin(this.aimRotation) * this.forwardForce / this.mass;
+                if (this.getSpeed() > MAX_SPEED && !this.cooling) {
+                    this.scaleSpeed(MAX_SPEED);
+                }
             }
         }
 
@@ -165,7 +196,7 @@ namespace Space
             this.velocity.X = this.velocity.X + (float)Math.Cos(left) * this.sideForce / this.mass;
             this.velocity.Y = this.velocity.Y + (float)Math.Sin(left) * this.sideForce / this.mass;
             if (this.getSpeed() > MAX_SPEED) {
-                this.scaleSpeed();
+                this.scaleSpeed(MAX_SPEED);
             }
         }
 
@@ -177,12 +208,12 @@ namespace Space
             this.velocity.X = this.velocity.X + (float)Math.Cos(right) * this.sideForce / this.mass;
             this.velocity.Y = this.velocity.Y + (float)Math.Sin(right) * this.sideForce / this.mass;
             if (this.getSpeed() > MAX_SPEED) {
-                this.scaleSpeed();
+                this.scaleSpeed(MAX_SPEED);
             }
         }
 
-        public void scaleSpeed() {
-            float scale = MAX_SPEED / this.getSpeed();
+        public void scaleSpeed(float maxSpeed) {
+            float scale = maxSpeed / this.getSpeed();
             this.velocity.X = this.velocity.X * scale;
             this.velocity.Y = this.velocity.Y * scale;
         }
@@ -197,8 +228,34 @@ namespace Space
         }
 
         public void brake() {
-            this.velocity.X = this.velocity.X - this.velocity.X * this.backwardForce / (this.mass * this.getSpeed());
-            this.velocity.Y = this.velocity.Y - this.velocity.Y * this.backwardForce / (this.mass * this.getSpeed());
+            if (this.getSpeed() != 0) {
+                if (this.getSpeed() < 0.101) {
+                    this.velocity = new Vector2(0, 0);
+                } else {
+                    this.velocity.X = this.velocity.X - this.velocity.X * this.backwardForce / (this.mass * this.getSpeed());
+                    this.velocity.Y = this.velocity.Y - this.velocity.Y * this.backwardForce / (this.mass * this.getSpeed());
+                }
+            }
+        }
+
+        public void boost() {
+            if (!boosting) {
+                MAX_SPEED = 4 * MAX_SPEED;
+                boosting = true;
+            }
+        }
+
+        public void noBoost() {
+            if (boosting) {
+                MAX_SPEED = MAX_SPEED / 4;
+                boosting = false;
+                this.cooling = true;
+            }
+            if (this.getSpeed() > MAX_SPEED) {
+                this.brake();
+            } else if (this.cooling) {
+                this.cooling = false;
+            }
         }
 
         public float getSpeed() {
@@ -242,7 +299,6 @@ namespace Space
                     this.takeOff();
                 }
             }
-
             updatePosition(w);
             if (weaponCooldown > 0) {
                 this.weaponCooldown--;
@@ -287,7 +343,9 @@ namespace Space
                 float[] mine = planet.mine(miningEquipment);
                 this.iron += mine[(int)MineReturn.IRON];
                 this.gems += mine[(int)MineReturn.GEMS];
-                Console.WriteLine(this.iron.ToString() + ", " + this.gems.ToString());
+                if (this.getCapacity() < 0) {
+                    this.iron += this.getCapacity();
+                }
             }
         }
     }

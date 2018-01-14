@@ -26,7 +26,7 @@ namespace Space {
             this.pos = pos;
             this.power = power;
             this.angle = angle;
-            this.lifetime = 1000;
+            this.lifetime = 100;
             this.identifier = r.Next(0, 1000000);
             this.radius = 2;
 
