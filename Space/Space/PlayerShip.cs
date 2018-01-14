@@ -29,16 +29,19 @@ namespace Space
         private SpaceObject landedOn;
         private bool alive;
 
+        private float iron;
+        private float gems;
+
         // SERVER
         private int identifier;
         Random r = new Random();
 
         // STATS (not implemented yet)
-        private float power;
         private float shield;
         private float weapons;
         private float weaponCooldown;
         private float radius;
+        private float miningEquipment;
 
         //DEFINITION
         private ObjectType type;
@@ -58,12 +61,16 @@ namespace Space
             this.landing = false;
             this.alive = true;
 
+            this.iron = 0;
+            this.gems = 0;
+
             this.identifier = r.Next(0, 1000000);
             
             this.shield = 100;
             this.weapons = 12;
             this.weaponCooldown = 0;
             this.radius = 20;
+            this.miningEquipment = 10;
 
             type = ObjectType.PLAYER;
         }
@@ -192,12 +199,6 @@ namespace Space
         public void brake() {
             this.velocity.X = this.velocity.X - this.velocity.X * this.backwardForce / (this.mass * this.getSpeed());
             this.velocity.Y = this.velocity.Y - this.velocity.Y * this.backwardForce / (this.mass * this.getSpeed());
-            if (Math.Abs(this.velocity.X) < 0.05) {
-                this.velocity.X = 0;
-            }
-            if (Math.Abs(this.velocity.Y) < 0.05) {
-                this.velocity.Y = 0;
-            }
         }
 
         public float getSpeed() {
@@ -277,6 +278,16 @@ namespace Space
             this.shield -= power;
             if (this.shield <= 0) {
                 this.alive = false;
+            }
+        }
+
+        public void mine() {
+            if (landedOn.getType() == ObjectType.MINING_PLANET) {
+                Planet planet = (Planet)landedOn;
+                float[] mine = planet.mine(miningEquipment);
+                this.iron += mine[(int)MineReturn.IRON];
+                this.gems += mine[(int)MineReturn.GEMS];
+                Console.WriteLine(this.iron.ToString() + ", " + this.gems.ToString());
             }
         }
     }

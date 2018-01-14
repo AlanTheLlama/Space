@@ -49,6 +49,7 @@
     <Compile Include="MovingObject.cs" />
     <Compile Include="Laser.cs" />
     <Compile Include="Object.cs" />
+    <Compile Include="Planet.cs" />
     <Compile Include="PlayerShip.cs" />
     <Compile Include="MainClient.cs" />
     <Compile Include="Program.cs" />

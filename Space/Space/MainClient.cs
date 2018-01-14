@@ -39,6 +39,7 @@ namespace Space {
         public static Texture2D asteroid;
         public static Texture2D enemy;
         public static Texture2D laserTex;
+        public static Texture2D planet;
 
         bool connected = false;
 
@@ -86,6 +87,7 @@ namespace Space {
             enemy = Content.Load<Texture2D>("Images/enemy");
             font = Content.Load<SpriteFont>("File");
             laserTex = Content.Load<Texture2D>("Images/laser");
+            planet = Content.Load<Texture2D>("Images/planet");
 
             player = new PlayerShip(new Vector2(world.SizeX / 2, world.SizeY / 2));
             bob = new AI(7500, 7500);
@@ -151,10 +153,15 @@ namespace Space {
                         }
                     }
                 }
-            }
+            } else {
 
-            if (Keyboard.GetState().IsKeyDown(Keys.G) == true) {
-                player.takeOff();
+                if (Keyboard.GetState().IsKeyDown(Keys.M) == true) {
+                    player.mine();
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.G) == true) {
+                    player.takeOff();
+                }
             }
 
             if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
@@ -203,38 +210,30 @@ namespace Space {
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Viewport = viewport;
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            //spriteBatch.GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
-            /*
-            foreach (Object obj in objects) {        //static objects
-                if (obj.getType() == ObjectType.NO_INTERACTION_OBJECT) {
-                    spriteBatch.Draw(obj.getTexture(),
-                        new Rectangle((int)obj.getPos().X, (int)obj.getPos().Y, 50, 50),
-                        Color.White);
-                }
-            } */
 
             int i = 0;
-            foreach (Object o in objects) {             //moving objects (duh)
-                spriteBatch.Draw(o.getTexture(),
-                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
-                    null,
-                    Color.White,
-                    o.getAngle() + (float)0.5 * (float)Math.PI,
-                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
-                    SpriteEffects.None, 0);
-                spriteBatch.DrawString(font, objects.Count.ToString() + ", " + objects[i].getID().ToString(), new Vector2(-50, i * 20), Color.Black);
-                i++;
+            foreach (Object o in objects) {
+                if (o.getType() != ObjectType.PLAYER) {
+                    spriteBatch.Draw(o.getTexture(),
+                        new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
+                        null,
+                        Color.White,
+                        o.getAngle() + (float)0.5 * (float)Math.PI,
+                        new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
+                        SpriteEffects.None, 0);
+                    i++;
+                }
             }
+            spriteBatch.Draw(player.getTexture(),
+                        new Rectangle((int)player.getPos().X, (int)player.getPos().Y, player.getTexture().Width, player.getTexture().Height),
+                        null,
+                        Color.White,
+                        player.getAngle() + (float)0.5 * (float)Math.PI,
+                        new Vector2(player.getTexture().Width / 2, player.getTexture().Height / 2),
+                        SpriteEffects.None, 0);
 
-            //drawing some tiles to represent camera/ship movement against something that stays still
-            spriteBatch.Draw(testTile, new Rectangle(60, 60, 10, 10), Color.White);
-            spriteBatch.Draw(testTile, new Rectangle(15, -50, 10, 10), Color.White);
-            spriteBatch.Draw(testTile, new Rectangle(200, 0, 10, 10), Color.White);
-            spriteBatch.Draw(testTile, new Rectangle(100, -300, 10, 10), Color.White);
-            spriteBatch.Draw(asteroid, new Rectangle(50, 50, 50, 50), Color.White);
-            spriteBatch.Draw(asteroid, new Rectangle(-50, 50, 100, 110), Color.White);
 
             spriteBatch.End();
 

@@ -12,8 +12,8 @@ namespace Space {
         PLAYER,
         AI,
         PROJECTILE,
-        NO_INTERACTION_OBJECT,
-        INTERACTION_OBJECT
+        ASTEROID,
+        MINING_PLANET
     };
 
     public interface Object {
