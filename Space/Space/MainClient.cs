@@ -93,7 +93,7 @@ namespace Space {
             star = Content.Load<Texture2D>("Images/star");
 
             player = new PlayerShip(new Vector2(world.getSizeX() / 2, world.getSizeY() / 2));
-            bob = new AI(7500, 7500);
+            bob = new AI(50000, 50000);
             objects.Add(player);
             objects.Add(bob);
 
@@ -231,7 +231,7 @@ namespace Space {
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Viewport = viewport;
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
 
@@ -249,10 +249,10 @@ namespace Space {
                 }
             }
 
-            spriteBatch.DrawString(font, "Speed: " + player.getSpeed().ToString(), new Vector2(player.getPos().X, player.getPos().Y + 16), Color.Black);
-            spriteBatch.DrawString(font, "Iron:  " + Math.Round((decimal)player.getIron(), 2).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 32), Color.Black);
-            spriteBatch.DrawString(font, "Gems:  " + Math.Round((decimal)player.getGems(), 2).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 48), Color.Black);
-            spriteBatch.DrawString(font, "Cap:   " + Math.Round((decimal)player.getCapacity(), 2).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 64), Color.Black);
+            spriteBatch.DrawString(font, "Speed: " + Math.Round((decimal)player.getSpeed()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 16), Color.White);
+            spriteBatch.DrawString(font, "Iron:  " + Math.Round((decimal)player.getIron()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 32), Color.White);
+            spriteBatch.DrawString(font, "Gems:  " + Math.Round((decimal)player.getGems()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 48), Color.White);
+            spriteBatch.DrawString(font, "Cap:   " + Math.Round((decimal)player.getCapacity()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 64), Color.White);
 
             spriteBatch.Draw(player.getTexture(),
                         new Rectangle((int)player.getPos().X, (int)player.getPos().Y, player.getTexture().Width, player.getTexture().Height),
