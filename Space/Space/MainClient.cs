@@ -27,6 +27,10 @@ namespace Space {
 
         public float MAX_SPEED = 9;
         public float RENDER_RADIUS = 2000;
+        public int MAP_WIDTH = 100000;
+        public int MAP_HEIGHT = 60000;
+        public int SCREEN_WIDTH = 800;
+        public int SCREEN_HEIGHT = 480;
 
         public World world;
 
@@ -42,6 +46,8 @@ namespace Space {
         public static Texture2D laserTex;
         public static Texture2D planet;
         public static Texture2D star;
+        public static Texture2D minimap_star;
+        public static Texture2D minimap_ship;
 
         bool connected = false;
 
@@ -55,7 +61,7 @@ namespace Space {
         protected override void Initialize() {
             objects = new List<Object>();
 
-            world = new World(100000, 100000);
+            world = new World(MAP_WIDTH, MAP_HEIGHT);
             world.Generate(10000, 12000);
             foreach (SpaceObject so in world.getSpaceObjects()) {
                 objects.Add(so);
@@ -91,12 +97,13 @@ namespace Space {
             laserTex = Content.Load<Texture2D>("Images/laser");
             planet = Content.Load<Texture2D>("Images/planet");
             star = Content.Load<Texture2D>("Images/star");
+            minimap_ship = Content.Load<Texture2D>("Images/minimap_ship");
+            minimap_star = Content.Load<Texture2D>("Images/minimap_star");
 
-            player = new PlayerShip(new Vector2(world.getSizeX() / 2, world.getSizeY() / 2));
-            bob = new AI(50000, 50000);
+            player = new PlayerShip(new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2));
+            bob = new AI(MAP_WIDTH / 2, MAP_HEIGHT / 2);
             objects.Add(player);
             objects.Add(bob);
-
         }
 
         protected override void UnloadContent() {
@@ -117,78 +124,83 @@ namespace Space {
                     System.Diagnostics.Debug.WriteLine("Could not connect!");
                 }
             }
-            if (player.isAlive()) {
-                if (!player.isLanding()) {
-                    if (!player.isCooling()) {
-                        if (Keyboard.GetState().IsKeyDown(Keys.W) == true) {
-                            player.thrust();
+            if (Keyboard.GetState().IsKeyDown(Keys.T) == true) {
+                player.onMap();
+            } else {
+                player.offMap();
+                if (player.isAlive()) {
+                    if (!player.isLanding()) {
+                        if (!player.isCooling()) {
+                            if (Keyboard.GetState().IsKeyDown(Keys.W) == true) {
+                                player.thrust();
+                            }
                         }
-                    }
-                    if (!player.isBoosting() && !player.isCooling()) {
-                        if (Keyboard.GetState().IsKeyDown(Keys.S) == true) {
-                            player.reverse();
-                        }
+                        if (!player.isBoosting() && !player.isCooling()) {
+                            if (Keyboard.GetState().IsKeyDown(Keys.S) == true) {
+                                player.reverse();
+                            }
 
-                        if (Keyboard.GetState().IsKeyDown(Keys.D) == true) {
-                            player.rotateRight();
-                        }
+                            if (Keyboard.GetState().IsKeyDown(Keys.D) == true) {
+                                player.rotateRight();
+                            }
 
-                        if (Keyboard.GetState().IsKeyDown(Keys.A) == true) {
-                            player.rotateLeft();
-                        }
+                            if (Keyboard.GetState().IsKeyDown(Keys.A) == true) {
+                                player.rotateLeft();
+                            }
 
-                        if (Keyboard.GetState().IsKeyDown(Keys.Q) == true) {
-                            player.leftThrust();
-                        }
+                            if (Keyboard.GetState().IsKeyDown(Keys.Q) == true) {
+                                player.leftThrust();
+                            }
 
-                        if (Keyboard.GetState().IsKeyDown(Keys.E) == true) {
-                            player.rightThrust();
-                        }
+                            if (Keyboard.GetState().IsKeyDown(Keys.E) == true) {
+                                player.rightThrust();
+                            }
 
-                        if (Keyboard.GetState().IsKeyDown(Keys.Space) == true) {
-                            player.brake();
-                        }
+                            if (Keyboard.GetState().IsKeyDown(Keys.Space) == true) {
+                                player.brake();
+                            }
 
-                        if (Keyboard.GetState().IsKeyDown(Keys.H) == true && player.getSpeed() < player.MAX_SPEED_TO_LAND) {
-                            for (int index = 0; index < objects.Count; index++) {
-                                if (objects[index].getType() == ObjectType.ASTEROID || objects[index].getType() == ObjectType.MINING_PLANET) {
-                                    if (Math2.inRadius(player.getPos(), objects[index].getPos(), ((SpaceObject)objects[index]).getRadius())) {
-                                        player.land((SpaceObject)objects[index]);
-                                        index = objects.Count;
+                            if (Keyboard.GetState().IsKeyDown(Keys.H) == true && player.getSpeed() < player.MAX_SPEED_TO_LAND) {
+                                for (int index = 0; index < objects.Count; index++) {
+                                    if (objects[index].getType() == ObjectType.ASTEROID || objects[index].getType() == ObjectType.MINING_PLANET) {
+                                        if (Math2.inRadius(player.getPos(), objects[index].getPos(), ((SpaceObject)objects[index]).getRadius())) {
+                                            player.land((SpaceObject)objects[index]);
+                                            index = objects.Count;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!player.isCooling()) {
+                                if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
+                                    Laser l = player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
+                                    if (l != null) {
+                                        objects.Add(l);
                                     }
                                 }
                             }
                         }
-
                         if (!player.isCooling()) {
-                            if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
-                                Laser l = player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
-                                if (l != null) {
-                                    objects.Add(l);
-                                }
+                            if (Keyboard.GetState().IsKeyDown(Keys.LeftShift) == true) {
+                                player.boost();
                             }
                         }
-                    }
-                    if (!player.isCooling()) {
-                        if (Keyboard.GetState().IsKeyDown(Keys.LeftShift) == true) {
-                            player.boost();
+
+                        if (Keyboard.GetState().IsKeyDown(Keys.LeftShift) == false || player.isCooling()) {
+                            player.noBoost();
                         }
-                    }
 
-                    if (Keyboard.GetState().IsKeyDown(Keys.LeftShift) == false || player.isCooling()) {
-                        player.noBoost();
-                    }
+                    } else {
 
-                } else {
-
-                    if (Keyboard.GetState().IsKeyDown(Keys.M) == true) {
-                        if (player.getCapacity() > 0) {
-                            player.mine();
+                        if (Keyboard.GetState().IsKeyDown(Keys.M) == true) {
+                            if (player.getCapacity() > 0) {
+                                player.mine();
+                            }
                         }
-                    }
 
-                    if (Keyboard.GetState().IsKeyDown(Keys.G) == true) {
-                        player.takeOff();
+                        if (Keyboard.GetState().IsKeyDown(Keys.G) == true) {
+                            player.takeOff();
+                        }
                     }
                 }
             }
@@ -233,34 +245,62 @@ namespace Space {
             GraphicsDevice.Viewport = viewport;
             GraphicsDevice.Clear(Color.Black);
 
-            spriteBatch.Begin(SpriteSortMode.FrontToBack, null, null, null, null, null, cam.Transform);
+            spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, cam.Transform);
 
-            int i = 0;
-            foreach (Object o in objects) {
-                if (o.getType() != ObjectType.PLAYER && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
-                    spriteBatch.Draw(o.getTexture(),
-                        new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
-                        null,
-                        Color.White,
-                        o.getAngle() + (float)0.5 * (float)Math.PI,
-                        new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
-                        SpriteEffects.None, 0);
-                    i++;
+            if (player.isInMap()) {
+                Vector2 topLeft = new Vector2(player.getPos().X - SCREEN_WIDTH * (float)1.5, player.getPos().Y - SCREEN_HEIGHT * (float)1.5);
+                foreach (Object o in objects) {
+                    if (o.getType() == ObjectType.STAR) {
+                        Vector2 pos = new Vector2(topLeft.X + o.getPos().X * SCREEN_WIDTH * 3 / MAP_WIDTH, topLeft.Y + o.getPos().Y * SCREEN_HEIGHT * 3 / MAP_HEIGHT);
+                        spriteBatch.Draw(minimap_star,
+                            new Rectangle((int)pos.X, (int)pos.Y, minimap_star.Width, minimap_star.Height),
+                            null,
+                            Color.White,
+                            0,
+                            new Vector2(minimap_star.Width / 2, minimap_star.Height / 2),
+                            SpriteEffects.None, 0);
+                        spriteBatch.DrawString(font, o.getID().ToString(), new Vector2(pos.X, pos.Y + 16), Color.White);
+                    }
                 }
+                Vector2 shipPos = new Vector2(topLeft.X + player.getPos().X * SCREEN_WIDTH * 3 / MAP_WIDTH, topLeft.Y + player.getPos().Y * SCREEN_HEIGHT * 3 / MAP_HEIGHT);
+                spriteBatch.Draw(minimap_ship,
+                    new Rectangle((int)shipPos.X, (int)shipPos.Y, minimap_ship.Width, minimap_ship.Height),
+                    null,
+                    Color.White,
+                    0,
+                    new Vector2(minimap_ship.Width / 2, minimap_ship.Height / 2),
+                    SpriteEffects.None, 0);
+            } else {
+                int i = 0;
+                foreach (Object o in objects) {
+                    if (o.getType() != ObjectType.PLAYER && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                        spriteBatch.Draw(o.getTexture(),
+                            new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
+                            null,
+                            Color.White,
+                            o.getAngle() + Math2.QUARTER_CIRCLE,
+                            new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
+                            SpriteEffects.None, 0);
+                        i++;
+                        if (o.getType() == ObjectType.STAR) {
+                            spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                        }
+                    }
+                }
+
+                spriteBatch.DrawString(font, "Speed: " + Math.Round((decimal)player.getSpeed()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 16), Color.White);
+                spriteBatch.DrawString(font, "Iron:  " + Math.Round((decimal)player.getIron()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 32), Color.White);
+                spriteBatch.DrawString(font, "Gems:  " + Math.Round((decimal)player.getGems()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 48), Color.White);
+                spriteBatch.DrawString(font, "Cap:   " + Math.Round((decimal)player.getCapacity()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 64), Color.White);
+
+                spriteBatch.Draw(player.getTexture(),
+                            new Rectangle((int)player.getPos().X, (int)player.getPos().Y, player.getTexture().Width, player.getTexture().Height),
+                            null,
+                            Color.White,
+                            player.getAngle() + (float)0.5 * (float)Math.PI,
+                            new Vector2(player.getTexture().Width / 2, player.getTexture().Height / 2),
+                            SpriteEffects.None, 0);
             }
-
-            spriteBatch.DrawString(font, "Speed: " + Math.Round((decimal)player.getSpeed()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 16), Color.White);
-            spriteBatch.DrawString(font, "Iron:  " + Math.Round((decimal)player.getIron()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 32), Color.White);
-            spriteBatch.DrawString(font, "Gems:  " + Math.Round((decimal)player.getGems()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 48), Color.White);
-            spriteBatch.DrawString(font, "Cap:   " + Math.Round((decimal)player.getCapacity()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 64), Color.White);
-
-            spriteBatch.Draw(player.getTexture(),
-                        new Rectangle((int)player.getPos().X, (int)player.getPos().Y, player.getTexture().Width, player.getTexture().Height),
-                        null,
-                        Color.White,
-                        player.getAngle() + (float)0.5 * (float)Math.PI,
-                        new Vector2(player.getTexture().Width / 2, player.getTexture().Height / 2),
-                        SpriteEffects.None, 0);
 
 
             spriteBatch.End();

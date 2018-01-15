@@ -30,6 +30,7 @@ namespace Space
         private bool alive;
         private bool boosting;
         private bool cooling;
+        private bool inMap;
 
         private float iron;
         private float gems;
@@ -65,6 +66,7 @@ namespace Space
             this.alive = true;
             this.boosting = false;
             this.cooling = false;
+            this.inMap = false;
 
             this.iron = 0;
             this.gems = 0;
@@ -88,6 +90,18 @@ namespace Space
         }
 
         //GETTERS/SETTERS
+
+        public bool isInMap() {
+            return this.inMap;
+        }
+
+        public void onMap() {
+            this.inMap = true;
+        }
+
+        public void offMap() {
+            this.inMap = false;
+        }
 
         public int getID() {
             return identifier;
@@ -252,6 +266,7 @@ namespace Space
                 this.cooling = true;
             }
             if (this.getSpeed() > MAX_SPEED) {
+                this.brake();
                 this.brake();
             } else if (this.cooling) {
                 this.cooling = false;
