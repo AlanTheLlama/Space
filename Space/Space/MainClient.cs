@@ -355,7 +355,7 @@ namespace Space {
                     break;
 
                 case PlayState.MENU:
-                    
+                    GraphicsDevice.Clear(Color.Azure);
                     break;
 
                 default:
