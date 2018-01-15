@@ -184,6 +184,36 @@ namespace Space {
             }
         }
 
+        public void boost()
+        {
+            if (!boosting)
+            {
+                MAX_SPEED = 4 * MAX_SPEED;
+                boosting = true;
+            }
+        }
+
+        public void noBoost()
+        {
+            if (boosting)
+            {
+                MAX_SPEED = MAX_SPEED / 4;
+                boosting = false;
+                this.cooling = true;
+            }
+            if (this.getSpeed() > MAX_SPEED)
+            {
+                this.brake();
+                this.brake();
+            }
+            else if (this.cooling)
+            {
+                this.cooling = false;
+            }
+        }
+
+        //MISC
+
         public void updatePosition(World w)
         {
             Vector2 vec = new Vector2(this.pos.X + this.velocity.X, this.pos.Y + this.velocity.Y);
@@ -240,29 +270,48 @@ namespace Space {
 
         //GAMEPLAY
 
-        public bool danger() { //Changed this around a bit
+        public int danger() { //Changed this around a bit
             foreach (Object o in MainClient.objects) {
                 if (o.getType() == ObjectType.PLAYER) {
                     distToo((MovingObject)o);
-                    if (dist <= 200) {
-                        return true;
+                    if (dist <= 50) {
+                        return 1;
+                    }
+                    else if (dist <= 100)
+                    {
+                        return 2;
+                    }
+                    else if (dist <= 200)
+                    {
+                        return 3;
                     }
                 }
             }
-            return false;
+            return 0;
         }
 
         public void decide() { //Solely combat scenario
-            bool temp = danger();
-            if (temp)
+            int temp = danger();
+
+            if (temp == 2) //Most danger
             {
                 this.thrust();
             }
-            else if (!temp && this.getSpeed() > 0)
+            else if (temp == 3)
+            {
+                this.rotateRight();
+                //do rotating stuff
+            }
+            else if (temp == 1)
+            {
+                this.boost();
+            }
+
+            else if (this.getSpeed() > 0)
             {
                 this.brake();
             }
-            else if (!temp)
+            else 
             {
                 this.rotateLeft();
                 //Will make you accelerate l8ter
