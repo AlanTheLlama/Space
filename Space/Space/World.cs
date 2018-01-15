@@ -7,10 +7,10 @@ using Microsoft.Xna.Framework;
 
 namespace Space {
     public class World {
-        private int MIN_DIST_FOR_ASTEROIDS = 200;
-        private int MIN_DIST_FOR_PLANETS = 800;
-        private int MIN_DIST_FOR_SOL_SYS = 2000;
-        private int SOL_SYS_RADIUS = 1400;
+        private int MIN_DIST_FOR_ASTEROIDS = 300;
+        private int MIN_DIST_FOR_PLANETS = 1400;
+        private int MIN_DIST_FOR_SOL_SYS = 3000;
+        private int SOL_SYS_RADIUS = 1800;
 
         private int SizeX { get; set; }
         private int SizeY { get; set; }
