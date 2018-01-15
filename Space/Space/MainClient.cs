@@ -66,9 +66,9 @@ namespace Space {
             objects = new List<Object>();
             buttonList = new List<Button>();
 
-            //startButton = new Button(Content.Load<Texture2D>("startButton"), null, 20, viewport.Height - 40, 50, 20);
-            //exitButton = new Button(Content.Load<Texture2D>("exitButton"), null, 90, viewport.Height - 40, 50, 20);
-            //optionsButton = new Button(Content.Load<Texture2D>("optionsButton"), null, 160, viewport.Height - 40, 50, 20);
+            startButton = new Button(Content.Load<Texture2D>("startButton"), null, 20, viewport.Height - 40, 50, 20);
+            exitButton = new Button(Content.Load<Texture2D>("exitButton"), null, 90, viewport.Height - 40, 50, 20);
+            optionsButton = new Button(Content.Load<Texture2D>("optionsButton"), null, 160, viewport.Height - 40, 50, 20);
 
             ps = PlayState.MENU;
 
