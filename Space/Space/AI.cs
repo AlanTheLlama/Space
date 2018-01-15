@@ -31,9 +31,14 @@ namespace Space {
         private ObjectType type;
 
         //GAMEPLAY
+        private bool boosting;
+        private bool cooling;
+        private bool aligned;
         private float radius;
         private float shield;
         private bool alive;
+        private float weaponCooldown;
+        private float weapons;
 
         public AI (int x, int y) { 
             this.pos = new Vector2(x, y);
@@ -51,10 +56,23 @@ namespace Space {
             this.radius = 32;
             this.shield = 100;
             this.alive = true;
-        }
+            this.aligned = false;
+            this.cooling = false;
+            this.boosting = false;
+            this.weaponCooldown = 0;
+            this.weapons = 24;
+    }
 
         //GETTERS/SETTERS
+        public bool isBoosting()
+        {
+            return this.boosting;
+        }
 
+        public bool isCooling()
+        {
+            return this.cooling;
+        }
         public float getRot()
         {
             return this.aimRotation;
@@ -187,9 +205,12 @@ namespace Space {
         public void update(World w)
         {
             this.updatePosition(w);
-            this.nearby();
+            this.decide();
         }
+        public void returnFire()
+        {
 
+        }
         public float getSpeed()
         {
             return (float)Math.Sqrt(this.velocity.X * this.velocity.X + this.velocity.Y * this.velocity.Y);
@@ -201,6 +222,21 @@ namespace Space {
             change.Y = mo.getPos().Y - this.pos.Y;
             dist = (float)Math.Sqrt(change.X * change.X + change.Y * change.Y);
         }
+
+        public Laser fireWeapon()
+        {
+            if (weaponCooldown == 0)
+            {
+                //float x = 
+                //float y = 
+                Vector2 angle = Math2.getUnitVector(12, 12);
+                Laser laser = new Laser(this.pos, this.weapons, angle, this.identifier);
+                this.weaponCooldown = 4;
+                return laser;
+            }
+            return null;
+        }
+
 
         //GAMEPLAY
 
@@ -216,14 +252,26 @@ namespace Space {
             return false;
         }
 
-        public void nearby() { //What to do when a player is detected
-            if (danger()) {
-                this.thrust();
-                //System.Diagnostics.Debug.WriteLine("DANGER!");
+        public void decide() { //Solely combat scenario
+            if (this.shield <= 20)
+            {
+                //run tf away
             }
-            else if (!danger() && this.getSpeed() > 0) {
-                brake();
+            else if (danger() && this.getSpeed() >= 0) { //Somebody is nearby stop moving 
+                this.brake();
             }
+            else if (danger() && this.getSpeed() <= 0) { //Turn towards your target
+
+            }
+            else if (danger() && this.aligned == true) //Start shooting?
+            {
+
+            }
+            else if (!danger() && this.getSpeed() > 0) { //Do a loop sorta thingy?
+                thrust();
+                rotateLeft();
+            }
+            
         }
 
         public bool isHit(Object o) {
