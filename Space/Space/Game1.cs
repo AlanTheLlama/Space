@@ -257,6 +257,13 @@ namespace Space {
             state.workSocket = handler;
             handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                 new AsyncCallback(updateLocation), state);
+
+            try {
+                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(RecieveStuff), state);
+            } catch (SocketException se) {
+                System.Diagnostics.Debug.WriteLine("Server connected but did not ping back!\nERROR: " + se);
+            }
         }
 
         public void SendStuff(IAsyncResult ar) {
