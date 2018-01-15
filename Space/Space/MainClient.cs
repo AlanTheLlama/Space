@@ -25,12 +25,12 @@ namespace Space {
         Timer dataTimer;
         AI bob;
 
-        public float MAX_SPEED = 9;
-        public float RENDER_RADIUS = 2000;
-        public int MAP_WIDTH = 100000;
-        public int MAP_HEIGHT = 60000;
-        public int SCREEN_WIDTH = 800;
-        public int SCREEN_HEIGHT = 480;
+        public static float MAX_SPEED = 9;
+        public static float RENDER_RADIUS = 2000;
+        public static int MAP_WIDTH = 100000;
+        public static int MAP_HEIGHT = 60000;
+        public static int SCREEN_WIDTH = 800;
+        public static int SCREEN_HEIGHT = 480;
 
         public World world;
 

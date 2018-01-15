@@ -295,8 +295,8 @@ namespace Space
 
         public Laser fireWeapon(Vector2 mouse) {
             if (weaponCooldown == 0) {
-                float x = mouse.X - 400;
-                float y = mouse.Y - 240;
+                float x = mouse.X - MainClient.SCREEN_WIDTH / 2;
+                float y = mouse.Y - MainClient.SCREEN_HEIGHT / 2;
                 Vector2 angle = Math2.getUnitVector(x, y);
                 Laser laser = new Laser(this.pos, this.weapons, angle, this.identifier);
                 this.weaponCooldown = COOLDOWN;

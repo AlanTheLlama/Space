@@ -42,7 +42,7 @@ namespace Space {
                 }
 
                 solarSystemList[i] = new Vector2(x, y);
-                spaceObjects.Add(new Star(x, y, 400, i + 1));
+                spaceObjects.Add(new Star(x, y, 200, i + 1));
             }
 
             for(int i = 0; i < rInt; i++) {

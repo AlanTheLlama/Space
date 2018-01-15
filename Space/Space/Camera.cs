@@ -71,8 +71,7 @@ namespace Space {
 
             Vector2 cameraMovement = Vector2.Zero;
 
-            if (player.isInitialized())
-            {
+            if (player.isInitialized()) {
                 Position = this.player.getPos();
             }
 
@@ -97,5 +96,4 @@ namespace Space {
             MoveCamera(cameraMovement);
         }
     }
-
 }
