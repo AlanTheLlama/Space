@@ -9,6 +9,7 @@ using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MenuLib;
 
 namespace Space {
     /// <summary>
@@ -24,7 +25,8 @@ namespace Space {
         ClientDataHandler handler;
         Timer dataTimer;
         AI bob;
-
+        Button startButton, exitButton, optionsButton;
+        
         public static float MAX_SPEED = 9;
         public static float RENDER_RADIUS = 2000;
         public static int MAP_WIDTH = 300000;
@@ -35,10 +37,11 @@ namespace Space {
         public World world;
 
         public static List<Object> objects;
-        char[] deliminators = { ',', ' ', '/', ';'};
-        string[] splitter;
-        bool found;
-    
+        public List<Button> buttonList;
+        char[] deliminators = { ',', ' ', '/', ';' };
+        public enum PlayState { MENU, PLAYING };
+        PlayState ps;
+
         public static Texture2D ship;
         public static Texture2D testTile;
         public static Texture2D asteroid;
@@ -60,6 +63,13 @@ namespace Space {
 
         protected override void Initialize() {
             objects = new List<Object>();
+            buttonList = new List<Button>();
+
+            startButton = new Button(Content.Load<Texture2D>("startButton"), null, 20, viewport.Height - 40, 50, 20);
+            exitButton = new Button(Content.Load<Texture2D>("exitButton"), null, 90, viewport.Height - 40, 50, 20);
+            optionsButton = new Button(Content.Load<Texture2D>("optionsButton"), null, 160, viewport.Height - 40, 50, 20);
+
+            ps = PlayState.MENU;
 
             world = new World(MAP_WIDTH, MAP_HEIGHT);
             world.Generate(10000, 12000);
@@ -115,11 +125,11 @@ namespace Space {
                 Exit();
             }
 
-            if(Keyboard.GetState().IsKeyDown(Keys.Enter) && connected == false) {
+            if (Keyboard.GetState().IsKeyDown(Keys.Enter) && connected == false) {
                 try {
                     handler.connectToServer();
                     connected = true;
-                }catch (Exception e) {
+                } catch (Exception e) {
                     connected = false;
                     System.Diagnostics.Debug.WriteLine("Could not connect!");
                 }
@@ -247,94 +257,106 @@ namespace Space {
 
             spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, cam.Transform);
 
-            if (player.isInMap()) {
-                float SCALE = (float)2.8;
-                Vector2 topLeft = new Vector2(player.getPos().X - SCREEN_WIDTH * (float)1.5 + SCREEN_WIDTH * (3 - SCALE) / 2, 
-                    player.getPos().Y - SCREEN_HEIGHT * (float)1.5 + SCREEN_HEIGHT * (3 - SCALE) / 2);
-                foreach (Object o in objects) {
-                    if (o.getType() == ObjectType.STAR) {
-                        Vector2 pos = new Vector2(topLeft.X + o.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + o.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
-                        spriteBatch.Draw(minimap_star,
-                            new Rectangle((int)pos.X, (int)pos.Y, minimap_star.Width, minimap_star.Height),
+            switch (ps) {
+                case PlayState.PLAYING:
+                    if (player.isInMap()) {
+                        float SCALE = (float)2.8;
+                        Vector2 topLeft = new Vector2(player.getPos().X - SCREEN_WIDTH * (float)1.5 + SCREEN_WIDTH * (3 - SCALE) / 2,
+                            player.getPos().Y - SCREEN_HEIGHT * (float)1.5 + SCREEN_HEIGHT * (3 - SCALE) / 2);
+                        foreach (Object o in objects) {
+                            if (o.getType() == ObjectType.STAR) {
+                                Vector2 pos = new Vector2(topLeft.X + o.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + o.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
+                                spriteBatch.Draw(minimap_star,
+                                    new Rectangle((int)pos.X, (int)pos.Y, minimap_star.Width, minimap_star.Height),
+                                    null,
+                                    Color.White,
+                                    0,
+                                    new Vector2(minimap_star.Width / 2, minimap_star.Height / 2),
+                                    SpriteEffects.None, 0);
+                            }
+                        }
+                        Vector2 shipPos = new Vector2(topLeft.X + player.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + player.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
+                        spriteBatch.Draw(minimap_ship,
+                            new Rectangle((int)shipPos.X, (int)shipPos.Y, minimap_ship.Width, minimap_ship.Height),
                             null,
                             Color.White,
                             0,
-                            new Vector2(minimap_star.Width / 2, minimap_star.Height / 2),
+                            new Vector2(minimap_ship.Width / 2, minimap_ship.Height / 2),
                             SpriteEffects.None, 0);
-                    }
-                }
-                Vector2 shipPos = new Vector2(topLeft.X + player.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + player.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
-                spriteBatch.Draw(minimap_ship,
-                    new Rectangle((int)shipPos.X, (int)shipPos.Y, minimap_ship.Width, minimap_ship.Height),
-                    null,
-                    Color.White,
-                    0,
-                    new Vector2(minimap_ship.Width / 2, minimap_ship.Height / 2),
-                    SpriteEffects.None, 0);
-            } else {
-                int i = 0;
-                foreach (Object o in objects) {
-                    ObjectType type = o.getType();
-                    if ((type == ObjectType.STAR || 
-                        type == ObjectType.MINING_PLANET || 
-                        type == ObjectType.ASTEROID) && 
-                        Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
-                        spriteBatch.Draw(o.getTexture(),
-                            new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
-                            null,
-                            Color.White,
-                            o.getAngle() + Math2.QUARTER_CIRCLE,
-                            new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
-                            SpriteEffects.None, 0);
-                        i++;
-                        if (o.getType() == ObjectType.STAR) {
-                            spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                    } else {
+                        int i = 0;
+                        foreach (Object o in objects) {
+                            ObjectType type = o.getType();
+                            if ((type == ObjectType.STAR ||
+                                type == ObjectType.MINING_PLANET ||
+                                type == ObjectType.ASTEROID) &&
+                                Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                                spriteBatch.Draw(o.getTexture(),
+                                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
+                                    null,
+                                    Color.White,
+                                    o.getAngle() + Math2.QUARTER_CIRCLE,
+                                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
+                                    SpriteEffects.None, 0);
+                                i++;
+                                if (o.getType() == ObjectType.STAR) {
+                                    spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                                }
+                            }
                         }
-                    }
-                }
-                foreach (Object o in objects) {
-                    ObjectType type = o.getType();
-                    if ((type == ObjectType.PLAYER || type == ObjectType.AI) && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
-                        spriteBatch.Draw(o.getTexture(),
-                            new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
-                            null,
-                            Color.White,
-                            o.getAngle() + Math2.QUARTER_CIRCLE,
-                            new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
-                            SpriteEffects.None, 0);
-                        i++;
-                        if (o.getType() == ObjectType.STAR) {
-                            spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                        foreach (Object o in objects) {
+                            ObjectType type = o.getType();
+                            if ((type == ObjectType.PLAYER || type == ObjectType.AI) && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                                spriteBatch.Draw(o.getTexture(),
+                                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
+                                    null,
+                                    Color.White,
+                                    o.getAngle() + Math2.QUARTER_CIRCLE,
+                                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
+                                    SpriteEffects.None, 0);
+                                i++;
+                                if (o.getType() == ObjectType.STAR) {
+                                    spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                                }
+                            }
                         }
-                    }
-                }
-                foreach (Object o in objects) {
-                    ObjectType type = o.getType();
-                    if (type == ObjectType.PROJECTILE && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
-                        spriteBatch.Draw(o.getTexture(),
-                            new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
-                            null,
-                            Color.White,
-                            o.getAngle() + Math2.QUARTER_CIRCLE,
-                            new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
-                            SpriteEffects.None, 0);
-                        i++;
-                        if (o.getType() == ObjectType.STAR) {
-                            spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                        foreach (Object o in objects) {
+                            ObjectType type = o.getType();
+                            if (type == ObjectType.PROJECTILE && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                                spriteBatch.Draw(o.getTexture(),
+                                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
+                                    null,
+                                    Color.White,
+                                    o.getAngle() + Math2.QUARTER_CIRCLE,
+                                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
+                                    SpriteEffects.None, 0);
+                                i++;
+                                if (o.getType() == ObjectType.STAR) {
+                                    spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                                }
+                            }
                         }
-                    }
-                }
 
-                spriteBatch.DrawString(font, "Speed: " + Math.Round((decimal)player.getSpeed()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 80), Color.White);
-                spriteBatch.DrawString(font, "Iron:  " + Math.Round((decimal)player.getIron()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 96), Color.White);
-                spriteBatch.DrawString(font, "Gems:  " + Math.Round((decimal)player.getGems()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 112), Color.White);
-                spriteBatch.DrawString(font, "Cap:   " + Math.Round((decimal)player.getCapacity()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 128), Color.White);
+                    }
+                    spriteBatch.DrawString(font, "Speed: " + Math.Round((decimal)player.getSpeed()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 80), Color.White);
+                    spriteBatch.DrawString(font, "Iron:  " + Math.Round((decimal)player.getIron()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 96), Color.White);
+                    spriteBatch.DrawString(font, "Gems:  " + Math.Round((decimal)player.getGems()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 112), Color.White);
+                    spriteBatch.DrawString(font, "Cap:   " + Math.Round((decimal)player.getCapacity()).ToString(), new Vector2(player.getPos().X, player.getPos().Y + 128), Color.White);
+
+                    spriteBatch.End();
+                    base.Draw(gameTime);
+                    break;
+                case PlayState.MENU:
+                    
+
+                    spriteBatch.End();
+                    base.Draw(gameTime);
+                    break;
+                default:
+                    spriteBatch.End();
+                    base.Draw(gameTime);
+                    break;
             }
-
-
-            spriteBatch.End();
-
-            base.Draw(gameTime);
         }
     }
 }
