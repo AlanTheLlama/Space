@@ -27,7 +27,7 @@ namespace Space {
         Timer dataTimer;
         AI bob;
         Button startButton, exitButton, optionsButton;
-        
+
         public static float MAX_SPEED = 9;
         public static float RENDER_RADIUS = 2000;
         public static int MAP_WIDTH = 300000;
@@ -66,9 +66,9 @@ namespace Space {
             objects = new List<Object>();
             buttonList = new List<Button>();
 
-            startButton = new Button(Content.Load<Texture2D>("startButton"), null, 20, viewport.Height - 40, 50, 20);
-            exitButton = new Button(Content.Load<Texture2D>("exitButton"), null, 90, viewport.Height - 40, 50, 20);
-            optionsButton = new Button(Content.Load<Texture2D>("optionsButton"), null, 160, viewport.Height - 40, 50, 20);
+            //startButton = new Button(Content.Load<Texture2D>("startButton"), null, 20, viewport.Height - 40, 50, 20);
+            //exitButton = new Button(Content.Load<Texture2D>("exitButton"), null, 90, viewport.Height - 40, 50, 20);
+            //optionsButton = new Button(Content.Load<Texture2D>("optionsButton"), null, 160, viewport.Height - 40, 50, 20);
 
             ps = PlayState.MENU;
 
@@ -262,7 +262,7 @@ namespace Space {
 
             if (player.isInMap()) {
                 float SCALE = (float)2.8;
-                Vector2 topLeft = new Vector2(player.getPos().X - SCREEN_WIDTH * (float)1.5 + SCREEN_WIDTH * (3 - SCALE) / 2, 
+                Vector2 topLeft = new Vector2(player.getPos().X - SCREEN_WIDTH * (float)1.5 + SCREEN_WIDTH * (3 - SCALE) / 2,
                     player.getPos().Y - SCREEN_HEIGHT * (float)1.5 + SCREEN_HEIGHT * (3 - SCALE) / 2);
                 foreach (Object o in objects) {
                     if (o.getType() == ObjectType.STAR) {
@@ -274,6 +274,13 @@ namespace Space {
                             0,
                             new Vector2(minimap_star.Width / 2, minimap_star.Height / 2),
                             SpriteEffects.None, 0);
+
+                        if (Math2.inRadius(new Vector2(topLeft.X + Mouse.GetState().Position.X * SCALE,
+                            topLeft.Y + Mouse.GetState().Position.Y * SCALE), pos, 16)) {
+
+                            spriteBatch.DrawString(bigFont, "ID: " + o.getID().ToString(),
+                            new Vector2(topLeft.X + SCREEN_WIDTH * (float)1.4, topLeft.Y + 16), Color.White);
+                        }
                     }
                 }
                 Vector2 shipPos = new Vector2(topLeft.X + player.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + player.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
@@ -288,9 +295,9 @@ namespace Space {
                 int i = 0;
                 foreach (Object o in objects) {
                     ObjectType type = o.getType();
-                    if ((type == ObjectType.STAR || 
-                        type == ObjectType.MINING_PLANET || 
-                        type == ObjectType.ASTEROID) && 
+                    if ((type == ObjectType.STAR ||
+                        type == ObjectType.MINING_PLANET ||
+                        type == ObjectType.ASTEROID) &&
                         Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
                         spriteBatch.Draw(o.getTexture(),
                             new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
@@ -345,11 +352,9 @@ namespace Space {
             }
 
 
-            default:
-                spriteBatch.End();
+            spriteBatch.End();
 
-                base.Draw(gameTime);
-                break;
+            base.Draw(gameTime);
         }
     }
 }
