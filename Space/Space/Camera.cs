@@ -44,9 +44,15 @@ namespace Space {
         }
 
         private void UpdateMatrix() {
-            Transform = Matrix.CreateTranslation(new Vector3(-Position.X, -Position.Y, 0)) *
-                    Matrix.CreateScale(Zoom) *
-                    Matrix.CreateTranslation(new Vector3(Bounds.Width * 0.5f, Bounds.Height * 0.5f, 0));
+            if (player.isInMap()) {
+                Transform = Matrix.CreateTranslation(new Vector3(-Position.X, -Position.Y, 0)) *
+                        Matrix.CreateScale(0.35f) *
+                        Matrix.CreateTranslation(new Vector3(Bounds.Width * 0.5f, Bounds.Height * 0.5f, 0));
+            } else {
+                Transform = Matrix.CreateTranslation(new Vector3(-Position.X, -Position.Y, 0)) *
+                        Matrix.CreateScale(Zoom) *
+                        Matrix.CreateTranslation(new Vector3(Bounds.Width * 0.5f, Bounds.Height * 0.5f, 0));
+            }
             UpdateVisibleArea();
         }
 
@@ -74,26 +80,26 @@ namespace Space {
             if (player.isInitialized()) {
                 Position = this.player.getPos();
             }
+            if (!player.isInMap()) {
+                previousMouseWheelValue = currentMouseWheelValue;
+                currentMouseWheelValue = Mouse.GetState().ScrollWheelValue;
 
-            previousMouseWheelValue = currentMouseWheelValue;
-            currentMouseWheelValue = Mouse.GetState().ScrollWheelValue;
+                if (currentMouseWheelValue > previousMouseWheelValue) {
+                    AdjustZoom(.05f);
+                }
 
-            if (currentMouseWheelValue > previousMouseWheelValue) {
-                AdjustZoom(.05f);
+                if (currentMouseWheelValue < previousMouseWheelValue) {
+                    AdjustZoom(-.05f);
+                }
+
+                previousZoom = zoom;
+                zoom = Zoom;
+                if (previousZoom != zoom) {
+                    Console.WriteLine(zoom);
+                }
+
+                MoveCamera(cameraMovement);
             }
-
-            if (currentMouseWheelValue < previousMouseWheelValue) {
-                AdjustZoom(-.05f);
-            }
-
-            previousZoom = zoom;
-            zoom = Zoom;
-            if (previousZoom != zoom) {
-                Console.WriteLine(zoom);
-
-            }
-
-            MoveCamera(cameraMovement);
         }
     }
 }

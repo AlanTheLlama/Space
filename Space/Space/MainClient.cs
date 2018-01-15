@@ -248,10 +248,12 @@ namespace Space {
             spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, cam.Transform);
 
             if (player.isInMap()) {
-                Vector2 topLeft = new Vector2(player.getPos().X - SCREEN_WIDTH * (float)1.5, player.getPos().Y - SCREEN_HEIGHT * (float)1.5);
+                float SCALE = (float)2.8;
+                Vector2 topLeft = new Vector2(player.getPos().X - SCREEN_WIDTH * (float)1.5 + SCREEN_WIDTH * (3 - SCALE) / 2, 
+                    player.getPos().Y - SCREEN_HEIGHT * (float)1.5 + SCREEN_HEIGHT * (3 - SCALE) / 2);
                 foreach (Object o in objects) {
                     if (o.getType() == ObjectType.STAR) {
-                        Vector2 pos = new Vector2(topLeft.X + o.getPos().X * SCREEN_WIDTH * 3 / MAP_WIDTH, topLeft.Y + o.getPos().Y * SCREEN_HEIGHT * 3 / MAP_HEIGHT);
+                        Vector2 pos = new Vector2(topLeft.X + o.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + o.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
                         spriteBatch.Draw(minimap_star,
                             new Rectangle((int)pos.X, (int)pos.Y, minimap_star.Width, minimap_star.Height),
                             null,
@@ -259,10 +261,9 @@ namespace Space {
                             0,
                             new Vector2(minimap_star.Width / 2, minimap_star.Height / 2),
                             SpriteEffects.None, 0);
-                        spriteBatch.DrawString(font, o.getID().ToString(), new Vector2(pos.X, pos.Y + 16), Color.White);
                     }
                 }
-                Vector2 shipPos = new Vector2(topLeft.X + player.getPos().X * SCREEN_WIDTH * 3 / MAP_WIDTH, topLeft.Y + player.getPos().Y * SCREEN_HEIGHT * 3 / MAP_HEIGHT);
+                Vector2 shipPos = new Vector2(topLeft.X + player.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + player.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
                 spriteBatch.Draw(minimap_ship,
                     new Rectangle((int)shipPos.X, (int)shipPos.Y, minimap_ship.Width, minimap_ship.Height),
                     null,
