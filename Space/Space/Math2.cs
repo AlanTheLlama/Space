@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace Space {
     class Math2 {
+        public static float QUARTER_CIRCLE = (float)(0.5 * Math.PI);
+        public static float HALF_CIRCLE = (float)(Math.PI);
+        public static float THREE_QUARTER_CIRCLE = (float)(1.5 * Math.PI);
+
         public static Vector2 getUnitVector(float x, float y) {
             float ret = getQuadSum(x, y);
             Vector2 uv;
@@ -22,8 +26,8 @@ namespace Space {
             return (float)Math.Sqrt(x * x + y * y);
         }
 
-        public static bool inRadius(float x1, float y1, float x2, float y2, float radius) {
-            return ((float)Math2.getQuadSum(x2 - x1, y2 - y1)) < radius;
+        public static bool inRadius(Vector2 pos1, Vector2 pos2, float radius) {
+            return ((float)Math2.getQuadSum(pos2.X - pos1.X, pos2.Y - pos1.Y)) < radius;
         }
     }
 }

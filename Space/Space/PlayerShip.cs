@@ -9,35 +9,42 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Space
 {
     public class PlayerShip : MovingObject {
-        public float MAX_SPEED = 9;
+        public float MAX_SPEED = 7;
         public float COOLDOWN = 20;
         public float MAX_SPEED_TO_LAND = 2;
 
         // MOVEMENT
-        public Vector2 pos;
-        public Vector2 velocity;
-        public float aimRotation;
-        public float rotSpeed;
-        public float curveSpeed;
-        public float forwardForce;
-        public float backwardForce;
-        public float sideForce;
-        public float mass;
+        private Vector2 pos;
+        private Vector2 velocity;
+        private float aimRotation;
+        private float rotSpeed;
+        private float forwardForce;
+        private float backwardForce;
+        private float sideForce;
+        private float mass;
 
         // STATUS
-        public bool initialized;
-        public bool landing;
-        public SpaceObject landedOn;
+        private bool initialized;
+        private bool landing;
+        private SpaceObject landedOn;
+        private bool alive;
+        private bool boosting;
+        private bool cooling;
+
+        private float iron;
+        private float gems;
 
         // SERVER
-        public int identifier;
+        private int identifier;
         Random r = new Random();
 
         // STATS (not implemented yet)
-        public float power;
-        public float shield;
-        public float weapons;
-        public float weaponCooldown;
+        private float shield;
+        private float weapons;
+        private float weaponCooldown;
+        private float radius;
+        private float miningEquipment;
+        private float capacity;
 
         //DEFINITION
         private ObjectType type;
@@ -48,7 +55,6 @@ namespace Space
             this.aimRotation = (float)0.5 * (float)Math.PI;           //don't press enter.
             this.velocity = new Vector2(0, 0);
             this.rotSpeed = (float)0.15;
-            this.curveSpeed = (float)0.05;
             this.forwardForce = (float)2;
             this.backwardForce = (float)1;
             this.sideForce = (float)0.5;
@@ -56,13 +62,21 @@ namespace Space
 
             this.initialized = true;
             this.landing = false;
+            this.alive = true;
+            this.boosting = false;
+            this.cooling = false;
+
+            this.iron = 0;
+            this.gems = 0;
 
             this.identifier = r.Next(0, 1000000);
-
-            this.power = 10;
-            this.shield = 2;
-            this.weapons = 8;
+            
+            this.shield = 100;
+            this.weapons = 12;
             this.weaponCooldown = 0;
+            this.radius = 20;
+            this.miningEquipment = 4;
+            this.capacity = 100;
 
             type = ObjectType.PLAYER;
         }
@@ -72,6 +86,8 @@ namespace Space
             aimRotation = rot;
             identifier = id;
         }
+
+        //GETTERS/SETTERS
 
         public int getID() {
             return identifier;
@@ -93,18 +109,52 @@ namespace Space
             return this.aimRotation;
         }
 
-        public Texture2D GetTexture() {
-            return Game1.ship;
+        public Texture2D getTexture() {
+            return MainClient.ship;
+        }
+
+        public bool isInitialized() {
+            return this.initialized;
         }
 
         public string dataString() {
-            return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString() + "/";
+            return pos.X.ToString() + "/" + pos.Y.ToString() + "/" + getRot().ToString() + "/" + getID().ToString() + ";";
+        }
+
+        public bool isLanding() {
+            return this.landing;
         }
 
         public void setCoords(float x, float y, float rot) {
             this.pos = new Vector2(x, y);
             this.aimRotation = rot;
         }
+
+        public bool isAlive() {
+            return this.alive;
+        }
+
+        public float getIron() {
+            return this.iron;
+        }
+
+        public float getGems() {
+            return this.gems;
+        }
+
+        public float getCapacity() {
+            return this.capacity - this.iron - this.gems;
+        }
+
+        public bool isBoosting() {
+            return this.boosting;
+        }
+
+        public bool isCooling() {
+            return this.cooling;
+        }
+
+        //MOVEMENT
 
         public void rotateRight()
         {
@@ -126,10 +176,15 @@ namespace Space
         }
         public void thrust()
         {
-            this.velocity.X = this.velocity.X + (float)Math.Cos(this.aimRotation) * this.forwardForce / this.mass;
-            this.velocity.Y = this.velocity.Y + (float)Math.Sin(this.aimRotation) * this.forwardForce / this.mass;
-            if (this.getSpeed() > MAX_SPEED) {
-                this.scaleSpeed();
+            if (this.getSpeed() == 0) {
+                this.velocity.X = (float)Math.Cos(this.aimRotation) * this.forwardForce / this.mass;
+                this.velocity.Y = (float)Math.Sin(this.aimRotation) * this.forwardForce / this.mass;
+            } else {
+                this.velocity.X = this.velocity.X + (float)Math.Cos(this.aimRotation) * this.forwardForce / this.mass;
+                this.velocity.Y = this.velocity.Y + (float)Math.Sin(this.aimRotation) * this.forwardForce / this.mass;
+                if (this.getSpeed() > MAX_SPEED && !this.cooling) {
+                    this.scaleSpeed(MAX_SPEED);
+                }
             }
         }
 
@@ -141,7 +196,7 @@ namespace Space
             this.velocity.X = this.velocity.X + (float)Math.Cos(left) * this.sideForce / this.mass;
             this.velocity.Y = this.velocity.Y + (float)Math.Sin(left) * this.sideForce / this.mass;
             if (this.getSpeed() > MAX_SPEED) {
-                this.scaleSpeed();
+                this.scaleSpeed(MAX_SPEED);
             }
         }
 
@@ -153,12 +208,12 @@ namespace Space
             this.velocity.X = this.velocity.X + (float)Math.Cos(right) * this.sideForce / this.mass;
             this.velocity.Y = this.velocity.Y + (float)Math.Sin(right) * this.sideForce / this.mass;
             if (this.getSpeed() > MAX_SPEED) {
-                this.scaleSpeed();
+                this.scaleSpeed(MAX_SPEED);
             }
         }
 
-        public void scaleSpeed() {
-            float scale = MAX_SPEED / this.getSpeed();
+        public void scaleSpeed(float maxSpeed) {
+            float scale = maxSpeed / this.getSpeed();
             this.velocity.X = this.velocity.X * scale;
             this.velocity.Y = this.velocity.Y * scale;
         }
@@ -173,13 +228,33 @@ namespace Space
         }
 
         public void brake() {
-            this.velocity.X = this.velocity.X - this.velocity.X * this.backwardForce / (this.mass * this.getSpeed());
-            this.velocity.Y = this.velocity.Y - this.velocity.Y * this.backwardForce / (this.mass * this.getSpeed());
-            if (Math.Abs(this.velocity.X) < 0) {
-                this.velocity.X = 0;
+            if (this.getSpeed() != 0) {
+                if (this.getSpeed() < 0.101) {
+                    this.velocity = new Vector2(0, 0);
+                } else {
+                    this.velocity.X = this.velocity.X - this.velocity.X * this.backwardForce / (this.mass * this.getSpeed());
+                    this.velocity.Y = this.velocity.Y - this.velocity.Y * this.backwardForce / (this.mass * this.getSpeed());
+                }
             }
-            if (Math.Abs(this.velocity.Y) < 0) {
-                this.velocity.Y = 0;
+        }
+
+        public void boost() {
+            if (!boosting) {
+                MAX_SPEED = 4 * MAX_SPEED;
+                boosting = true;
+            }
+        }
+
+        public void noBoost() {
+            if (boosting) {
+                MAX_SPEED = MAX_SPEED / 4;
+                boosting = false;
+                this.cooling = true;
+            }
+            if (this.getSpeed() > MAX_SPEED) {
+                this.brake();
+            } else if (this.cooling) {
+                this.cooling = false;
             }
         }
 
@@ -192,23 +267,24 @@ namespace Space
             Vector2 vec = new Vector2(this.pos.X + this.velocity.X, this.pos.Y + this.velocity.Y);
             float x = this.pos.X;
             float y = this.pos.Y;
-            if (vec.X >= 0 || vec.X <= w.SizeX) {
+            if (vec.X >= 0 || vec.X <= w.getSizeX()) {
                 x = vec.X;
             }
-            if (vec.Y >= 0 || vec.Y <= w.SizeX) {
+            if (vec.Y >= 0 || vec.Y <= w.getSizeX()) {
                 y = vec.Y;
             }
             this.pos = new Vector2(x, y);
         }
+
+        //GAMEPLAY
 
         public Laser fireWeapon(Vector2 mouse) {
             if (weaponCooldown == 0) {
                 float x = mouse.X - 400;
                 float y = mouse.Y - 240;
                 Vector2 angle = Math2.getUnitVector(x, y);
-                Laser laser = new Laser(this.pos, this.weapons, angle);
+                Laser laser = new Laser(this.pos, this.weapons, angle, this.identifier);
                 this.weaponCooldown = COOLDOWN;
-                System.Diagnostics.Debug.WriteLine(mouse.X.ToString()+ ", " + mouse.Y.ToString());
                 return laser;
             }
             return null;
@@ -219,11 +295,10 @@ namespace Space
                 this.brake();
             }
             if (landedOn != null) {
-                if (!Math2.inRadius(this.pos.X, this.pos.Y, landedOn.getXpos(), landedOn.getYpos(), landedOn.getRadius())) {
+                if (!Math2.inRadius(this.pos, landedOn.getPos(), landedOn.getRadius()) || !landedOn.isAlive()) {
                     this.takeOff();
                 }
             }
-
             updatePosition(w);
             if (weaponCooldown > 0) {
                 this.weaponCooldown--;
@@ -247,8 +322,31 @@ namespace Space
             this.landedOn = null;
         }
 
-        public bool isLanding() {
-            return this.landing;
+        public bool isHit(Object o) {
+            Projectile p = (Projectile)o;
+            if (p.getOriginID() == this.identifier) {
+                return false;
+            }
+            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+        }
+
+        public void getHit(float power) {
+            this.shield -= power;
+            if (this.shield <= 0) {
+                this.alive = false;
+            }
+        }
+
+        public void mine() {
+            if (landedOn.getType() == ObjectType.MINING_PLANET) {
+                Planet planet = (Planet)landedOn;
+                float[] mine = planet.mine(miningEquipment);
+                this.iron += mine[(int)MineReturn.IRON];
+                this.gems += mine[(int)MineReturn.GEMS];
+                if (this.getCapacity() < 0) {
+                    this.iron += this.getCapacity();
+                }
+            }
         }
     }
 }

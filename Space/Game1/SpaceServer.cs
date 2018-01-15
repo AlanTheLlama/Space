@@ -9,17 +9,14 @@ using Lidgren.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MenuLib;
 
 namespace SpaceServer {
 
     public class StateObject {
-        // Client  socket.
         public Socket workSocket = null;
-        // Size of receive buffer.
         public const int BufferSize = 1024;
-        // Receive buffer.
         public byte[] buffer = new byte[BufferSize];
-        // Received data string.
         public StringBuilder sb = new StringBuilder();
         public TcpClient newClient = new TcpClient();
     }
@@ -27,26 +24,19 @@ namespace SpaceServer {
     public class SpaceServer : Game {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        NetPeerConfiguration config;
-        NetServer server;
-        NetIncomingMessage message;
-        NetOutgoingMessage mOut;
         SpriteFont font;
         List<PlayerData> playerLocations;
         List<int> IDS;
+        Button startButton;
 
-        TcpListener tcpListen;
         Socket listener;
-        Thread listenThread;
-        
-        Texture2D startButton;
+        Texture2D startButtonTex;
 
         Rectangle sBRect;
 
         string[] splitter;
-        char[] deliminators = { ',', ' ', '/', ';' };
-        string serverStatus;
-        bool running;
+        char[] deliminators = { ',', ' ', '/' };
+        char terminator = ';';
 
         public SpaceServer() {
             graphics = new GraphicsDeviceManager(this);
@@ -56,7 +46,7 @@ namespace SpaceServer {
         protected override void Initialize() {
             this.IsMouseVisible = true;
 
-            IPAddress IP = IPAddress.Parse("192.168.1.244"); //LOGAN TEST
+            IPAddress IP = IPAddress.Parse("192.168.1.244");
 
             listener = new Socket(AddressFamily.InterNetwork,
             SocketType.Stream, ProtocolType.Tcp);
@@ -64,9 +54,8 @@ namespace SpaceServer {
             listener.Bind(new IPEndPoint(IP, 31579));
             listener.Listen(100);
 
-            //System.Diagnostics.Debug.WriteLine("Starting listener");
-            //running = true;
-            //Thread listenerThread = new Thread(new ThreadStart(() => LoopClients()));
+            listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
+
             System.Diagnostics.Debug.WriteLine("Started Listener Successfully");
 
             base.Initialize();
@@ -77,132 +66,37 @@ namespace SpaceServer {
             System.Diagnostics.Debug.WriteLine("SpriteBatch started");
             font = Content.Load<SpriteFont>("File");
 
-            startButton = Content.Load<Texture2D>("startButton");
-
-            sBRect = new Rectangle(10, GraphicsDevice.PresentationParameters.Bounds.Height - 30, 50, 20);
+            startButton = new Button(Content.Load<Texture2D>("startButton"), "Start", 10, GraphicsDevice.PresentationParameters.Bounds.Height - 30, 50, 20);
 
             playerLocations = new List<PlayerData>();
             IDS = new List<int>() { 0 };
         }
-        
+
         protected override void UnloadContent() {
-            
+
         }
 
         protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            var mState = Mouse.GetState();
-            var mPos = new Point(mState.X, mState.Y);
-
-            /*if (sBRect.Contains(mPos) && mState.LeftButton == ButtonState.Pressed && server.Status != NetPeerStatus.Starting && server.Status != NetPeerStatus.Running) {
-                //server.Start();
-            }*/
-
-            TcpClient newClient;
-            listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
+            if (startButton.Clicked()) System.Diagnostics.Debug.WriteLine("Clicked!");
 
             base.Update(gameTime);
         }
 
-        /*public void LoopClients() {
-            System.Diagnostics.Debug.WriteLine("LoopClients");
-            while (running) {
-                System.Diagnostics.Debug.WriteLine("Waiting for client..");
-                
-                TcpClient newClient = listener.AcceptTcpClient();
-                System.Diagnostics.Debug.WriteLine("Found client");
-                
-                Thread t = new Thread(new ParameterizedThreadStart(HandleClient));
-                t.Start(newClient);
-            }
-        }*/
-
-        /*public void HandleClient(object obj) {
-            TcpClient client = (TcpClient)obj;
-            System.Diagnostics.Debug.WriteLine("Handling client");
-
-            StreamWriter sWriter = new StreamWriter(client.GetStream(), Encoding.ASCII);
-            StreamReader sReader = new StreamReader(client.GetStream(), Encoding.ASCII);
-
-            Boolean bClientConnected = true;
-            String sData = null;
-
-            while (bClientConnected) {
-                System.Diagnostics.Debug.WriteLine("Hi there!");
-                sData = null;
-
-                while (client.Available == 0) {
-                    System.Diagnostics.Debug.WriteLine("Loooooping");
-                    sData = sReader.ReadLine();
-                    System.Diagnostics.Debug.WriteLine("WHILE sData: " + sData);
-                }
-
-                System.Diagnostics.Debug.WriteLine("sData: " + sData);
-                splitter = new string[4] { "0", "1", "2", "3" };
-                splitter = sData.Split(deliminators);
-
-                System.Diagnostics.Debug.WriteLine("ID REPORTED: " + splitter[3]);
-
-                bool exists = false;
-                System.Diagnostics.Debug.WriteLine("Splitter length: " + splitter.Length);
-                System.Diagnostics.Debug.WriteLine("PLAYER LIST SIZE: " + playerLocations.Count);
-                for (int i = 0; i < playerLocations.Count; i++) {
-                    if (playerLocations[i].getID().ToString().Equals(splitter[3])) {
-                        playerLocations[i].setCoords(float.Parse(splitter[0]), float.Parse(splitter[1]), float.Parse(splitter[2]));
-                        exists = true;
-                    }
-                }
-                if (!exists) {
-                    System.Diagnostics.Debug.WriteLine("PLAYER LIST SIZE: " + playerLocations.Count);
-                    playerLocations.Add(new PlayerData(
-                        float.Parse(splitter[0]),
-                        float.Parse(splitter[1]),
-                        float.Parse(splitter[2]),
-                        int.Parse(splitter[3])));
-                }
-
-                foreach (PlayerData pd in playerLocations) {
-                    sWriter.WriteLine(pd.dataString());
-                    sWriter.Flush();
-                }
-            }
-
-            sWriter.Close();
-            sReader.Close();
-        }*/
-
         public void AcceptCallback(IAsyncResult ar) {
             Socket listener = (Socket)ar.AsyncState;
             Socket handler = listener.EndAccept(ar);
+
+            listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
 
             StateObject state = new StateObject();
             state.workSocket = handler;
             try {
                 handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                     new AsyncCallback(TalkToTheHand), state);
-            }catch (SocketException se) {
+            } catch (SocketException se) {
                 System.Diagnostics.Debug.WriteLine("Client connected but did not ping!\nERROR: " + se);
-            }
-        }
-
-        private void DeleteImposters() {
-            for (int i = 0; i < playerLocations.Count - 1; i++) {
-                int checker = playerLocations[i].getID();
-                if (playerLocations.Count > 1) {
-                    for (int k = i + 1; k < playerLocations.Count - 1; i++) {
-                        if (playerLocations[k].getID() == checker) {
-                            playerLocations.RemoveAt(k);
-                            System.Diagnostics.Debug.WriteLine("IMPOSTER NULLIFIED");
-                        }
-                    }
-                }
-            }
-        }
-
-        private void Truncate(string[] str, int pos) {
-            for(int i = pos; i < str.Length; i++) {
-                str[i] = null;
             }
         }
 
@@ -211,58 +105,49 @@ namespace SpaceServer {
             Socket handler = state.workSocket;
             ASCIIEncoding encoder = new ASCIIEncoding();
 
-            System.Diagnostics.Debug.WriteLine("SERVER: Count of " + playerLocations.Count);
-            byte[] buffer = encoder.GetBytes("Server recieves message!");
-            byte[] message = new byte[4096];
             int bytesRead = handler.EndReceive(ar);
             String content = String.Empty;
 
-            if(bytesRead > 0) {
+            System.Diagnostics.Debug.WriteLine("SERVER-RECIEVED: bytes: " + bytesRead);
+            if (bytesRead > 0) {                
+                if (bytesRead > 48) bytesRead = 48;
                 state.sb.Append(encoder.GetString(state.buffer, 0, bytesRead));
 
-                content = state.sb.ToString();
-
-                if (content.IndexOf("<EOF>") > -1) {
-                    System.Diagnostics.Debug.WriteLine("SERVER: Read {0} bytes from socket. \n Data : {1}",
-                        content.Length, content);
-                    
-                    System.Diagnostics.Debug.WriteLine("SERVER-RECIEVED: RECIEVED: " + Content);
-                } else {
+               // if(!state.sb.ToString().Contains(";"))
                     handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(TalkToTheHand), state);
-                }
+                        new AsyncCallback(TalkToTheHand), state);
+            }
 
-                state.sb.Clear();
+            content = state.sb.ToString();
+            state.sb.Clear();
 
-                String rec = content;
-                if (rec.Length > 1) System.Diagnostics.Debug.WriteLine("REC READ AS: " + rec);
-                splitter = new string[4] { "0", "1", "2", "3" };
-                if(rec.Length > 4)splitter = rec.Split(deliminators);
-                List<string> splitterList = new List<string>{ splitter[0], splitter[1], splitter[2], splitter[3] };
+            String rec = content;
+            int pos = 0;
+            splitter = new string[4] { "0", "1", "2", "3" };  //failsafe before anything even happens
 
+            System.Diagnostics.Debug.WriteLine("REC: " + rec);
+            rec = rec.Split(terminator)[0];
+            if (rec.Length > 4) splitter = rec.Split(deliminators); //failsafe #1
+            if (splitter.Length == 4) { //failsafe #2
+                List<string> splitterList = new List<string> { splitter[0], splitter[1], splitter[2], splitter[3] }; //failsafe #3
                 try {
                     if (rec.Length > 2) {
                         bool exists = false;
-
-                        for (int i = 0; i < playerLocations.Count - 1; i++) {
-                            if (playerLocations[i].getID().ToString().Equals(splitterList[3])) {
-                                playerLocations[i].setCoords(float.Parse(splitterList[0]), float.Parse(splitterList[1]), float.Parse(splitterList[2]));
-                                System.Diagnostics.Debug.WriteLine("SERVER: UPDATED DATA OF PLAYER " + splitterList[3]);
-                                exists = true;
-                            }
-                        }
-
-                        for (int i = 0; i < playerLocations.Count - 1; i++) {
+                        for (int i = 0; i < playerLocations.Count; i++) {
                             if (playerLocations[i].getID() == int.Parse(splitterList[3])) {
                                 exists = true;
-                                //System.Diagnostics.Debug.WriteLine("MATCH FOUND VIA INT CHECK");
+                                pos = i;
                             }
+                        }
+                        if (exists) {
+                            playerLocations[pos].setCoords(float.Parse(splitterList[0]), float.Parse(splitterList[1]), float.Parse(splitterList[2]));
+                            System.Diagnostics.Debug.WriteLine("SERVER: UPDATED DATA OF PLAYER " + splitterList[3]);
                         }
 
                         if (!exists && splitterList[3] != null && !IDS.Contains(int.Parse(splitterList[3]))) {
                             IDS.Add(int.Parse(splitterList[3]));
                             try {
-                                System.Diagnostics.Debug.WriteLine("SERVER: ADDING MOVINGOBJECT TO REGISTRY: " + (playerLocations.Count + 1) + "\n" + splitterList[3]);
+                                System.Diagnostics.Debug.WriteLine("SERVER: ADDING MOVINGOBJECT TO REGISTRY: " + (playerLocations.Count + 1) + "\nID:" + splitterList[3]);
                                 playerLocations.Add(new PlayerData(
                                     float.Parse(splitterList[0]),
                                     float.Parse(splitterList[1]),
@@ -272,41 +157,64 @@ namespace SpaceServer {
                                 System.Diagnostics.Debug.WriteLine("SERVER: FAILED TO ADD TO REGISTRY" + "\n    REC:" + rec + "\nSERVER-EXCEPTION: " + exc);
                             }
                         }
-
-                        DeleteImposters();
                     }
-                }catch (System.FormatException ex) {
+                } catch (System.FormatException ex) {
                     System.Diagnostics.Debug.WriteLine("SERVER: Could not process due to FormatException.");
                 }
-                    //Send all player information back to clients
-                for (int i = 0; i < playerLocations.Count - 1; i++) {
-                    byte[] b = encoder.GetBytes(playerLocations[i].dataString());
-                    //clientStream.Write(b, 0, b.Length);
-                    System.Diagnostics.Debug.WriteLine("SERVER: Sending PlayerData no. " + i + "\n        " + playerLocations[i].dataString());
-                }
+                //}
             }
-            
-            //System.Diagnostics.Debug.WriteLine("Past while loop ");
+            System.Diagnostics.Debug.WriteLine("SERVER: past while with list size " + playerLocations.Count);
+            //Send all player information back to clients
+            /*for (int i = 0; i < playerLocations.Count; i++) {
+                byte[] b = encoder.GetBytes(playerLocations[i].dataString());
+                System.Diagnostics.Debug.WriteLine("SERVER: Sending PlayerData no. " + i + "\n        " + playerLocations[i].dataString());
 
-            //tcpClient.Close();
+                handler.BeginSend(b, 0, b.Length, 0,
+                    new AsyncCallback(SendCallback), handler);
+            }*/
+
+            byte[] b = encoder.GetBytes(combineInfo());
+
+            handler.BeginSend(b, 0, b.Length, 0,
+                new AsyncCallback(SendCallback), handler);
         }
-        
+
+        private static void SendCallback(IAsyncResult ar) {
+            try {
+                Socket handler = (Socket)ar.AsyncState;
+
+                int bytesSent = handler.EndSend(ar);
+            } catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine(e.ToString());
+            }
+        }
+
+        public string combineInfo() {
+            string s = "";
+            for (int i = 0; i < playerLocations.Count; i++) s = s + playerLocations[i].dataString();
+            return s;
+        }
+
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin();
             int i = 0;
-            foreach(PlayerData pd in playerLocations) {
-                spriteBatch.DrawString(font, pd.outputAsString(), new Vector2(10, (i * 20)), Color.Black);
-                i++;
+            try {
+                foreach (PlayerData pd in playerLocations) {
+                    spriteBatch.DrawString(font, pd.outputAsString(), new Vector2(10, (i * 20)), Color.Black);
+                    i++;
+                }
+            } catch (InvalidOperationException e) {
+                System.Diagnostics.Debug.WriteLine(e);
             }
 
             //text
             spriteBatch.DrawString(font, "Status: " + playerLocations.Count, new Vector2(10, 10), Color.White);
-            
+
             //buttons
-            spriteBatch.Draw(startButton, sBRect, Color.White);
+            spriteBatch.Draw(startButton.tex, startButton.bounds, Color.White);
 
             spriteBatch.End();
 

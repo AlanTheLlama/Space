@@ -71,9 +71,9 @@ namespace Space {
 
             Vector2 cameraMovement = Vector2.Zero;
 
-            if (player.initialized)
+            if (player.isInitialized())
             {
-                Position = this.player.pos;
+                Position = this.player.getPos();
             }
 
             previousMouseWheelValue = currentMouseWheelValue;

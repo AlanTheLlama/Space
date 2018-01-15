@@ -8,27 +8,9 @@ using System.Threading.Tasks;
 
 namespace Space {
 
-    public enum ObjectType {
-        PLAYER,
-        AI,
-        PROJECTILE
-    };
-
-    public interface MovingObject {
+    public interface MovingObject : Object {
 
         void updatePosition(World w);
-
-        void update(World w);
-
-        Vector2 getPos();
-
-        ObjectType getType();
-
-        Texture2D GetTexture();
-
-        float getAngle();
-
-        int getID();
 
         void setCoords(float x, float y, float rot);
     }
