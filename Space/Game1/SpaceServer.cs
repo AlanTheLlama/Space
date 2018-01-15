@@ -28,6 +28,7 @@ namespace SpaceServer {
         List<PlayerData> playerLocations;
         List<int> IDS;
         Button startButton;
+        List<Button> buttonList;
 
         Socket listener;
         Texture2D startButtonTex;
@@ -69,6 +70,10 @@ namespace SpaceServer {
             startButton = new Button(Content.Load<Texture2D>("startButton"), "Start", 10, GraphicsDevice.PresentationParameters.Bounds.Height - 30, 50, 20);
 
             playerLocations = new List<PlayerData>();
+            buttonList = new List<Button>();
+
+            buttonList.Add(startButton);
+
             IDS = new List<int>() { 0 };
         }
 
@@ -79,7 +84,8 @@ namespace SpaceServer {
         protected override void Update(GameTime gameTime) {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            if (startButton.Clicked()) System.Diagnostics.Debug.WriteLine("Clicked!");
+
+            Button.CheckStates(buttonList);
 
             base.Update(gameTime);
         }
@@ -161,18 +167,9 @@ namespace SpaceServer {
                 } catch (System.FormatException ex) {
                     System.Diagnostics.Debug.WriteLine("SERVER: Could not process due to FormatException.");
                 }
-                //}
             }
             System.Diagnostics.Debug.WriteLine("SERVER: past while with list size " + playerLocations.Count);
-            //Send all player information back to clients
-            /*for (int i = 0; i < playerLocations.Count; i++) {
-                byte[] b = encoder.GetBytes(playerLocations[i].dataString());
-                System.Diagnostics.Debug.WriteLine("SERVER: Sending PlayerData no. " + i + "\n        " + playerLocations[i].dataString());
-
-                handler.BeginSend(b, 0, b.Length, 0,
-                    new AsyncCallback(SendCallback), handler);
-            }*/
-
+            
             byte[] b = encoder.GetBytes(combineInfo());
 
             handler.BeginSend(b, 0, b.Length, 0,
@@ -211,10 +208,11 @@ namespace SpaceServer {
             }
 
             //text
-            spriteBatch.DrawString(font, "Status: " + playerLocations.Count, new Vector2(10, 10), Color.White);
+            spriteBatch.DrawString(font, "Status: " + playerLocations.Count, new Vector2(90, 10), Color.White);
 
             //buttons
-            spriteBatch.Draw(startButton.tex, startButton.bounds, Color.White);
+            spriteBatch.Draw(
+                startButton.tex, startButton.bounds, startButton.sourceRect, Color.White);
 
             spriteBatch.End();
 
