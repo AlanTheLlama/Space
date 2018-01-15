@@ -66,10 +66,6 @@ namespace Space {
             objects = new List<Object>();
             buttonList = new List<Button>();
 
-            startButton = new Button(Content.Load<Texture2D>("startButton"), null, 20, viewport.Height - 40, 50, 20);
-            exitButton = new Button(Content.Load<Texture2D>("exitButton"), null, 90, viewport.Height - 40, 50, 20);
-            optionsButton = new Button(Content.Load<Texture2D>("optionsButton"), null, 160, viewport.Height - 40, 50, 20);
-
             ps = PlayState.MENU;
 
             world = new World(MAP_WIDTH, MAP_HEIGHT);
@@ -111,6 +107,14 @@ namespace Space {
             minimap_star = Content.Load<Texture2D>("Images/minimap_star");
             font = Content.Load<SpriteFont>("File");
             bigFont = Content.Load<SpriteFont>("BiggerFont");
+
+            startButton = new Button(Content.Load<Texture2D>("Images/startButton"), null, 20, viewport.Height - 40, 50, 20);
+            exitButton = new Button(Content.Load<Texture2D>("Images/exitButton"), null, 90, viewport.Height - 40, 50, 20);
+            optionsButton = new Button(Content.Load<Texture2D>("Images/optionsButton"), null, 160, viewport.Height - 40, 50, 20);
+
+            buttonList.Add(startButton);
+            buttonList.Add(exitButton);
+            buttonList.Add(optionsButton);
 
             player = new PlayerShip(new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2));
             bob = new AI(MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -355,7 +359,12 @@ namespace Space {
                     break;
 
                 case PlayState.MENU:
-                    GraphicsDevice.Clear(Color.Azure);
+                    
+                    spriteBatch.DrawString(font, "yolo", new Vector2(player.getPos().X - (SCREEN_WIDTH / 2) + 20, player.getPos().Y), Color.White);
+                    foreach (Button b in buttonList) {
+                        spriteBatch.Draw(b.tex, b.bounds, Color.White);
+                        System.Diagnostics.Debug.WriteLine("Yolo");
+                    }
                     break;
 
                 default:
