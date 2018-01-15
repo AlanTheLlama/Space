@@ -33,7 +33,6 @@ namespace Space {
         //GAMEPLAY
         private bool boosting;
         private bool cooling;
-        private bool aligned;
         private float radius;
         private float shield;
         private bool alive;
@@ -56,7 +55,6 @@ namespace Space {
             this.radius = 32;
             this.shield = 100;
             this.alive = true;
-            this.aligned = false;
             this.cooling = false;
             this.boosting = false;
             this.weaponCooldown = 0;
@@ -204,13 +202,14 @@ namespace Space {
 
         public void update(World w)
         {
+            decide();
+            if (weaponCooldown > 0)
+            {
+                weaponCooldown--;
+            }
             this.updatePosition(w);
-            this.decide();
         }
-        public void returnFire()
-        {
 
-        }
         public float getSpeed()
         {
             return (float)Math.Sqrt(this.velocity.X * this.velocity.X + this.velocity.Y * this.velocity.Y);
@@ -223,13 +222,14 @@ namespace Space {
             dist = (float)Math.Sqrt(change.X * change.X + change.Y * change.Y);
         }
 
-        public Laser fireWeapon()
+        public Laser fireWeapon(MovingObject mo)
         {
             if (weaponCooldown == 0)
             {
-                //float x = 
-                //float y = 
-                Vector2 angle = Math2.getUnitVector(12, 12);
+                distToo(mo);
+                float x = change.X;
+                float y = change.Y;
+                Vector2 angle = Math2.getUnitVector(x, y);
                 Laser laser = new Laser(this.pos, this.weapons, angle, this.identifier);
                 this.weaponCooldown = 4;
                 return laser;
@@ -240,7 +240,7 @@ namespace Space {
 
         //GAMEPLAY
 
-        public bool danger() {
+        public bool danger() { //Changed this around a bit
             foreach (Object o in MainClient.objects) {
                 if (o.getType() == ObjectType.PLAYER) {
                     distToo((MovingObject)o);
@@ -253,25 +253,20 @@ namespace Space {
         }
 
         public void decide() { //Solely combat scenario
-            if (this.shield <= 20)
+            bool temp = danger();
+            if (temp)
             {
-                //run tf away
+                this.thrust();
             }
-            else if (danger() && this.getSpeed() >= 0) { //Somebody is nearby stop moving 
+            else if (!temp && this.getSpeed() > 0)
+            {
                 this.brake();
             }
-            else if (danger() && this.getSpeed() <= 0) { //Turn towards your target
-
-            }
-            else if (danger() && this.aligned == true) //Start shooting?
+            else if (!temp)
             {
-
+                this.rotateLeft();
+                //Will make you accelerate l8ter
             }
-            else if (!danger() && this.getSpeed() > 0) { //Do a loop sorta thingy?
-                thrust();
-                rotateLeft();
-            }
-            
         }
 
         public bool isHit(Object o) {
