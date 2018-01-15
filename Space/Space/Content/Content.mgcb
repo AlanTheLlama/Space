@@ -20,6 +20,13 @@
 /processorParam:TextureFormat=Compressed
 /build:File.spritefont
 
+#begin BiggerFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:BiggerFont.spritefont
+
 #begin Images/asteroid.png
 /importer:TextureImporter
 /processor:TextureProcessor
