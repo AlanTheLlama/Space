@@ -55,7 +55,7 @@ namespace Space
             this.pos = vec;
             this.aimRotation = (float)0.5 * (float)Math.PI;           //don't press enter.
             this.velocity = new Vector2(0, 0);
-            this.rotSpeed = (float)0.15;
+            this.rotSpeed = (float)0.04;
             this.forwardForce = (float)2;
             this.backwardForce = (float)1;
             this.sideForce = (float)0.5;
