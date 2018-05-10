@@ -12,6 +12,7 @@ namespace Space {
         private float MAX_SPEED = 4;
 
         //MOVEMENT 
+        private MovingObject dangerObject;
         private Vector2 pos;
         private Vector2 velocity;
         private float aimRotation;
@@ -21,6 +22,7 @@ namespace Space {
         private float sideForce;
         private float mass;
         private float targetSpeed;
+
 
         //NON MOVEMENT
         private Vector2 change;
@@ -38,6 +40,7 @@ namespace Space {
         private float radius;
         private float shield;
         private bool alive;
+        private bool runningAway;
         private float weaponCooldown;
         private float weapons;
 
@@ -45,11 +48,12 @@ namespace Space {
             this.pos = new Vector2(x, y);
             this.aimRotation = (float)0.5 * (float)Math.PI;           //don't press enter.
             this.velocity = new Vector2(0, 0);
-            this.rotSpeed = (float)0.15;
+            this.rotSpeed = (float)0.08;
             this.forwardForce = (float)2; 
             this.backwardForce = (float)1; 
             this.sideForce = (float)0.5;
-            this.mass = 50;
+            this.mass = 30;
+            this.runningAway = false;
 
             this.identifier = r.Next(0, 1000000);
             this.type = ObjectType.AI;
@@ -219,6 +223,11 @@ namespace Space {
         public void updatePosition(World w)
         {
             pollSpeed();
+
+            if(runningAway) {
+                runFromTarget(dangerObject.getPos());
+            }else rotateToTarget(new Vector2(MainClient.MAP_WIDTH / 2 - 50, MainClient.MAP_HEIGHT / 2));
+
             Vector2 vec = new Vector2(this.pos.X + this.velocity.X, this.pos.Y + this.velocity.Y);
             float x = this.pos.X;
             float y = this.pos.Y;
@@ -231,7 +240,7 @@ namespace Space {
                 y = vec.Y;
             }
             this.pos = new Vector2(x, y);
-            System.Diagnostics.Debug.Print(danger().ToString());
+            //System.Diagnostics.Debug.Print(danger().ToString());
         }
 
         public void update(World w)
@@ -277,23 +286,28 @@ namespace Space {
         public int danger() { //Changed this around a bit
             foreach (Object o in MainClient.objects) {
                 if (o.getType() == ObjectType.PLAYER) {
-                    distToo((MovingObject)o);
-                    if (dist <= 100) {
+                    distToo((MovingObject) o);
+                    dangerObject = (MovingObject) o;
+                    if (dist <= 200) {
                         playerRef = o;
+                        runningAway = true;
                         return 1;
-                    }
-                    else if (dist <= 200)
-                    {
-                        playerRef = o;
-                        return 2;
                     }
                     else if (dist <= 400)
                     {
                         playerRef = o;
+                        runningAway = true;
+                        return 2;
+                    }
+                    else if (dist <= 600)
+                    {
+                        playerRef = o;
+                        runningAway = true;
                         return 3;
                     }
                 }
             }
+            runningAway = false;
             return 0;
         }
 
@@ -306,7 +320,7 @@ namespace Space {
                 Vector2 AiLoc = this.getPos();
                 double slope = (AiLoc.Y - pLoc.Y) / (AiLoc.X - pLoc.X);
                 float deg = (float)Math.Atan(slope);
-                System.Diagnostics.Debug.WriteLine("deg: " + deg);
+                //System.Diagnostics.Debug.WriteLine("deg: " + deg);
                 if (this.getRot() != this.getRot()) {
                     //this.rotateLeft();
                     //this.thrust();
@@ -321,7 +335,7 @@ namespace Space {
                 Vector2 AiLoc = this.getPos();
                 double slope = (AiLoc.Y - pLoc.Y) / (AiLoc.X - pLoc.X);
                 float deg = (float)Math.Atan(slope);
-                System.Diagnostics.Debug.WriteLine("deg: " + deg);
+                //System.Diagnostics.Debug.WriteLine("deg: " + deg);
                 if (this.getRot() != this.getRot()) {
                     //this.rotateLeft();
                     //this.thrust();
@@ -336,7 +350,7 @@ namespace Space {
                 Vector2 AiLoc = this.getPos();
                 double slope = (AiLoc.Y - pLoc.Y) / (AiLoc.X - pLoc.X);
                 float deg = (float)Math.Atan(slope);
-                System.Diagnostics.Debug.WriteLine("deg: " + deg);
+                //System.Diagnostics.Debug.WriteLine("deg: " + deg);
                 if (this.getRot() != this.getRot()) {
                     //this.rotateLeft();
                     //this.thrust();
@@ -364,6 +378,36 @@ namespace Space {
         public void pollSpeed() {
             if (this.getSpeed() < targetSpeed) this.thrust();
             if (this.getSpeed() > targetSpeed) this.brake();
+        }
+
+        public void rotateToTarget(Vector2 target) {
+            float deltaX = target.X - this.getPos().X;
+            float deltaY = target.Y - this.getPos().Y;
+            float angleRad = (float)Math.Atan2(deltaY, deltaX);
+
+            float currentRotation = Math2.toDegrees(this.getRot());
+            float angleBetween = Math2.toDegrees(angleRad);
+            System.Diagnostics.Debug.Print("ANGLE BETWEEN:     " + angleBetween);
+            System.Diagnostics.Debug.Print("AI ROT:     " + (currentRotation + 180));  //might need some tweaking as bob occasionally pulls a random 360
+
+            if (currentRotation < (angleBetween - 10)) rotateRight();
+            if (currentRotation > (angleBetween + 10)) rotateLeft();
+        }
+
+        public void runFromTarget(Vector2 target) {
+            float deltaX = target.X - this.getPos().X;
+            float deltaY = target.Y - this.getPos().Y;
+            float angleRad = (float)Math.Atan2(deltaY, deltaX);
+
+            float currentRotation = Math2.toDegrees(this.getRot());
+            float angleBetween = Math2.toDegrees(angleRad);
+            System.Diagnostics.Debug.Print("ANGLE BETWEEN:     " + angleBetween);
+            System.Diagnostics.Debug.Print("AI ROT:     " + (currentRotation + 180));  //might need some tweaking as bob occasionally pulls a random 360
+
+            float targetRotation = currentRotation + 180;
+            if (targetRotation > 360) targetRotation -= 360;
+            if (targetRotation < (angleBetween - 10)) rotateRight();
+            if (targetRotation > (angleBetween + 10)) rotateLeft();
         }
     }
 }
