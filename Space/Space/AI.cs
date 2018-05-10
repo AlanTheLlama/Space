@@ -20,6 +20,7 @@ namespace Space {
         private float backwardForce;
         private float sideForce;
         private float mass;
+        private float targetSpeed;
 
         //NON MOVEMENT
         private Vector2 change;
@@ -29,6 +30,7 @@ namespace Space {
         private int identifier;
         Random r = new Random();
         private ObjectType type;
+        Object playerRef;
 
         //GAMEPLAY
         private bool boosting;
@@ -216,6 +218,7 @@ namespace Space {
 
         public void updatePosition(World w)
         {
+            pollSpeed();
             Vector2 vec = new Vector2(this.pos.X + this.velocity.X, this.pos.Y + this.velocity.Y);
             float x = this.pos.X;
             float y = this.pos.Y;
@@ -228,6 +231,7 @@ namespace Space {
                 y = vec.Y;
             }
             this.pos = new Vector2(x, y);
+            System.Diagnostics.Debug.Print(danger().ToString());
         }
 
         public void update(World w)
@@ -274,15 +278,18 @@ namespace Space {
             foreach (Object o in MainClient.objects) {
                 if (o.getType() == ObjectType.PLAYER) {
                     distToo((MovingObject)o);
-                    if (dist <= 50) {
+                    if (dist <= 100) {
+                        playerRef = o;
                         return 1;
-                    }
-                    else if (dist <= 100)
-                    {
-                        return 2;
                     }
                     else if (dist <= 200)
                     {
+                        playerRef = o;
+                        return 2;
+                    }
+                    else if (dist <= 400)
+                    {
+                        playerRef = o;
                         return 3;
                     }
                 }
@@ -293,28 +300,53 @@ namespace Space {
         public void decide() { //Solely combat scenario
             int temp = danger();
 
-            if (temp == 2) //Most danger
+            if (temp == 1) //immediate danger
             {
-                this.thrust();
+                Vector2 pLoc = playerRef.getPos();
+                Vector2 AiLoc = this.getPos();
+                double slope = (AiLoc.Y - pLoc.Y) / (AiLoc.X - pLoc.X);
+                float deg = (float)Math.Atan(slope);
+                System.Diagnostics.Debug.WriteLine("deg: " + deg);
+                if (this.getRot() != this.getRot()) {
+                    //this.rotateLeft();
+                    //this.thrust();
+                    //this.boost();
+                    //targetSpeed = 4;
+                }
+                targetSpeed = 5;
             }
-            else if (temp == 3)
+            else if (temp == 2) //close
             {
-                this.rotateRight();
-                //do rotating stuff
+                Vector2 pLoc = playerRef.getPos();
+                Vector2 AiLoc = this.getPos();
+                double slope = (AiLoc.Y - pLoc.Y) / (AiLoc.X - pLoc.X);
+                float deg = (float)Math.Atan(slope);
+                System.Diagnostics.Debug.WriteLine("deg: " + deg);
+                if (this.getRot() != this.getRot()) {
+                    //this.rotateLeft();
+                    //this.thrust();
+                    //this.boost();
+                    //targetSpeed = 4;
+                }
+                targetSpeed = 3;
             }
-            else if (temp == 1)
+            else if (temp == 3) //far
             {
-                this.boost();
+                Vector2 pLoc = playerRef.getPos();
+                Vector2 AiLoc = this.getPos();
+                double slope = (AiLoc.Y - pLoc.Y) / (AiLoc.X - pLoc.X);
+                float deg = (float)Math.Atan(slope);
+                System.Diagnostics.Debug.WriteLine("deg: " + deg);
+                if (this.getRot() != this.getRot()) {
+                    //this.rotateLeft();
+                    //this.thrust();
+                    //this.boost();
+                    //targetSpeed = 4;
+                }
+                targetSpeed = 1;
             }
-
-            else if (this.getSpeed() > 0)
-            {
-                this.brake();
-            }
-            else 
-            {
-                this.rotateLeft();
-                //Will make you accelerate l8ter
+            else if(temp == 0) {
+                targetSpeed = 0;
             }
         }
 
@@ -327,6 +359,11 @@ namespace Space {
             if (this.shield <= 0) {
                 this.alive = false;
             }
+        }
+
+        public void pollSpeed() {
+            if (this.getSpeed() < targetSpeed) this.thrust();
+            if (this.getSpeed() > targetSpeed) this.brake();
         }
     }
 }

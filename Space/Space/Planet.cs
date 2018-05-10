@@ -38,7 +38,7 @@ namespace Space {
         }
 
         public Texture2D getTexture() {
-            return Space.MainClient.planet;
+            return Space.MainClient.planet; //down with firefox
         }
 
         public Vector2 getPos() {

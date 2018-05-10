@@ -66,7 +66,7 @@ namespace Space {
             objects = new List<Object>();
             buttonList = new List<Button>();
 
-            ps = PlayState.MENU;
+            ps = PlayState.PLAYING;
 
             world = new World(MAP_WIDTH, MAP_HEIGHT);
             world.Generate(10000, 12000);
@@ -268,8 +268,13 @@ namespace Space {
                 case PlayState.PLAYING:
                     if (player.isInMap()) {
                         float SCALE = (float)2.8;
+
                         Vector2 topLeft = new Vector2(player.getPos().X - SCREEN_WIDTH * (float)1.5 + SCREEN_WIDTH * (3 - SCALE) / 2,
                             player.getPos().Y - SCREEN_HEIGHT * (float)1.5 + SCREEN_HEIGHT * (3 - SCALE) / 2);
+
+                        Vector2 mousePos = new Vector2(topLeft.X - 18 + Mouse.GetState().Position.X * (float)2.851,
+                                    topLeft.Y - 18 + Mouse.GetState().Position.Y * (float)2.851);
+
                         foreach (Object o in objects) {
                             if (o.getType() == ObjectType.STAR) {
                                 Vector2 pos = new Vector2(topLeft.X + o.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + o.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
@@ -281,9 +286,7 @@ namespace Space {
                                     new Vector2(minimap_star.Width / 2, minimap_star.Height / 2),
                                     SpriteEffects.None, 0);
 
-                                if (Math2.inRadius(new Vector2(topLeft.X + Mouse.GetState().Position.X * SCALE,
-                                    topLeft.Y + Mouse.GetState().Position.Y * SCALE), pos, 16)) {
-
+                                if (Math2.inRadius(mousePos, pos, 16)) {
                                     spriteBatch.DrawString(bigFont, "ID: " + o.getID().ToString(),
                                     new Vector2(topLeft.X + SCREEN_WIDTH * (float)1.4, topLeft.Y + 16), Color.White);
                                 }
@@ -292,6 +295,13 @@ namespace Space {
                         Vector2 shipPos = new Vector2(topLeft.X + player.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + player.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
                         spriteBatch.Draw(minimap_ship,
                             new Rectangle((int)shipPos.X, (int)shipPos.Y, minimap_ship.Width, minimap_ship.Height),
+                            null,
+                            Color.White,
+                            0,
+                            new Vector2(minimap_ship.Width / 2, minimap_ship.Height / 2),
+                            SpriteEffects.None, 0);
+                        spriteBatch.Draw(minimap_ship,
+                            new Rectangle((int)mousePos.X, (int)mousePos.Y, minimap_ship.Width, minimap_ship.Height),
                             null,
                             Color.White,
                             0,
