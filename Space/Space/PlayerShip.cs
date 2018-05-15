@@ -363,5 +363,13 @@ namespace Space
                 }
             }
         }
+
+        public string getOwner() {
+            throw new NotImplementedException();
+        }
+
+        public void setOwner(string newOwner) {
+            throw new NotImplementedException();
+        }
     }
 }

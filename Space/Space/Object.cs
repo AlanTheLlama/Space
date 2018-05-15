@@ -27,5 +27,7 @@ namespace Space {
         Texture2D getTexture();
         int getID();
         float getAngle();
+        String getOwner();
+        void setOwner(string newOwner);
     }
 }

@@ -14,6 +14,7 @@ namespace Space {
         private bool alive;
         private ObjectType type;
         private int identifier;
+        private string owner = "Independent";
 
         private Random r = new Random();
 
@@ -71,5 +72,13 @@ namespace Space {
         }
 
         public void update(World w) {; }
+
+        public string getOwner() {
+            return owner;
+        }
+
+        public void setOwner(string newOwner) {
+            owner = newOwner;
+        }
     }
 }

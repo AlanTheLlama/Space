@@ -95,7 +95,7 @@ namespace Space {
                 previousZoom = zoom;
                 zoom = Zoom;
                 if (previousZoom != zoom) {
-                    Console.WriteLine(zoom);
+                    //Console.WriteLine(zoom);
                 }
 
                 MoveCamera(cameraMovement);

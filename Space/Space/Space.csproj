@@ -45,6 +45,7 @@
     <Compile Include="Asteroid.cs" />
     <Compile Include="AI.cs" />
     <Compile Include="ClientDataHandler.cs" />
+    <Compile Include="Faction.cs" />
     <Compile Include="Math2.cs" />
     <Compile Include="MovingObject.cs" />
     <Compile Include="Laser.cs" />
@@ -72,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Icon.ico" />
+    <Content Include="Content\names.txt" />
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />

@@ -35,10 +35,13 @@ namespace Space {
         public static int SCREEN_WIDTH = 800;
         public static int SCREEN_HEIGHT = 480;
 
-        public World world;
+        public static List<String> names;
+
+        public static World world;
 
         public static List<Object> objects;
         public List<Button> buttonList;
+        public static List<Object> players;
         char[] deliminators = { ',', ' ', '/', ';' };
         public enum PlayState { MENU, PLAYING };
         PlayState ps;
@@ -65,6 +68,8 @@ namespace Space {
         protected override void Initialize() {
             objects = new List<Object>();
             buttonList = new List<Button>();
+            names = new List<String>();
+            players = new List<Object>();
 
             ps = PlayState.PLAYING;
 
@@ -117,9 +122,10 @@ namespace Space {
             buttonList.Add(optionsButton);
 
             player = new PlayerShip(new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2));
-            bob = new AI(MAP_WIDTH / 2, MAP_HEIGHT / 2);
+            bob = new AI(MAP_WIDTH / 2, MAP_HEIGHT / 2 + 100);
             objects.Add(player);
             objects.Add(bob);
+            players.Add(player);
         }
 
         protected override void UnloadContent() {
@@ -193,7 +199,7 @@ namespace Space {
                                     if (l != null) {
                                         objects.Add(l);
                                     }
-                                    Console.WriteLine(Mouse.GetState().Position.X.ToString() + ", " + Mouse.GetState().Position.Y.ToString());
+                                    //Console.WriteLine(Mouse.GetState().Position.X.ToString() + ", " + Mouse.GetState().Position.Y.ToString());
                                 }
                             }
                         }
@@ -257,6 +263,8 @@ namespace Space {
             }
         }
 
+
+        //MAPFUNC
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Viewport = viewport;
@@ -288,7 +296,9 @@ namespace Space {
 
                                 if (Math2.inRadius(mousePos, pos, 16)) {
                                     spriteBatch.DrawString(bigFont, "ID: " + o.getID().ToString(),
-                                    new Vector2(topLeft.X + SCREEN_WIDTH * (float)1.4, topLeft.Y + 16), Color.White);
+                                        new Vector2(topLeft.X + SCREEN_WIDTH * (float)1.4, topLeft.Y + 16), Color.White);
+                                    spriteBatch.DrawString(bigFont, "OWNER: \"" + o.getOwner() + "\"",
+                                        new Vector2(topLeft.X + SCREEN_WIDTH * (float)1.4, topLeft.Y - 16), Color.White);
                                 }
                             }
                         }

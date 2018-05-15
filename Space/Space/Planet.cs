@@ -18,6 +18,7 @@ namespace Space {
         private float health;
         private bool alive;
         private ObjectType type;
+        public static String owner;
 
         private Random r = new Random();
 
@@ -32,9 +33,11 @@ namespace Space {
             this.health = 10000;
             this.alive = true;
             this.type = ObjectType.MINING_PLANET;
+            owner = "Independent";
 
             this.iron = r.Next(100, 1000);
             this.gems = r.Next(100, 1000);
+
         }
 
         public Texture2D getTexture() {
@@ -78,6 +81,14 @@ namespace Space {
             if (this.health <= 0) {
                 this.alive = false;
             }
+        }
+
+        public String getOwner() {
+            return owner;
+        }
+
+        public void setOwner(String newOwner) {
+            owner = newOwner;
         }
 
         public void update(World w) {; }

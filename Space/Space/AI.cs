@@ -44,7 +44,7 @@ namespace Space {
         private float weaponCooldown;
         private float weapons;
 
-        public AI (int x, int y) { 
+        public AI (float x, float y) { 
             this.pos = new Vector2(x, y);
             this.aimRotation = (float)0.5 * (float)Math.PI;           //don't press enter.
             this.velocity = new Vector2(0, 0);
@@ -245,6 +245,7 @@ namespace Space {
 
         public void update(World w)
         {
+
             decide();
             if (weaponCooldown > 0)
             {
@@ -284,7 +285,7 @@ namespace Space {
         //GAMEPLAY
 
         public int danger() { //Changed this around a bit
-            foreach (Object o in MainClient.objects) {
+            foreach (Object o in MainClient.players) {
                 if (o.getType() == ObjectType.PLAYER) {
                     distToo((MovingObject) o);
                     dangerObject = (MovingObject) o;
@@ -304,6 +305,10 @@ namespace Space {
                         playerRef = o;
                         runningAway = true;
                         return 3;
+                    }else if (dist > 600) {
+                        playerRef = o;
+                        runningAway = false;
+                        return 0;
                     }
                 }
             }
@@ -314,49 +319,23 @@ namespace Space {
         public void decide() { //Solely combat scenario
             int temp = danger();
 
-            if (temp == 1) //immediate danger
-            {
+            if (temp < 1000) {
                 Vector2 pLoc = playerRef.getPos();
                 Vector2 AiLoc = this.getPos();
                 double slope = (AiLoc.Y - pLoc.Y) / (AiLoc.X - pLoc.X);
                 float deg = (float)Math.Atan(slope);
-                //System.Diagnostics.Debug.WriteLine("deg: " + deg);
-                if (this.getRot() != this.getRot()) {
-                    //this.rotateLeft();
-                    //this.thrust();
-                    //this.boost();
-                    //targetSpeed = 4;
-                }
+            }
+
+            if (temp == 1) //immediate danger
+            {
                 targetSpeed = 5;
             }
             else if (temp == 2) //close
             {
-                Vector2 pLoc = playerRef.getPos();
-                Vector2 AiLoc = this.getPos();
-                double slope = (AiLoc.Y - pLoc.Y) / (AiLoc.X - pLoc.X);
-                float deg = (float)Math.Atan(slope);
-                //System.Diagnostics.Debug.WriteLine("deg: " + deg);
-                if (this.getRot() != this.getRot()) {
-                    //this.rotateLeft();
-                    //this.thrust();
-                    //this.boost();
-                    //targetSpeed = 4;
-                }
                 targetSpeed = 3;
             }
             else if (temp == 3) //far
             {
-                Vector2 pLoc = playerRef.getPos();
-                Vector2 AiLoc = this.getPos();
-                double slope = (AiLoc.Y - pLoc.Y) / (AiLoc.X - pLoc.X);
-                float deg = (float)Math.Atan(slope);
-                //System.Diagnostics.Debug.WriteLine("deg: " + deg);
-                if (this.getRot() != this.getRot()) {
-                    //this.rotateLeft();
-                    //this.thrust();
-                    //this.boost();
-                    //targetSpeed = 4;
-                }
                 targetSpeed = 1;
             }
             else if(temp == 0) {
@@ -387,8 +366,8 @@ namespace Space {
 
             float currentRotation = Math2.toDegrees(this.getRot());
             float angleBetween = Math2.toDegrees(angleRad);
-            System.Diagnostics.Debug.Print("ANGLE BETWEEN:     " + angleBetween);
-            System.Diagnostics.Debug.Print("AI ROT:     " + (currentRotation + 180));  //might need some tweaking as bob occasionally pulls a random 360
+            //System.Diagnostics.Debug.Print("ANGLE BETWEEN:     " + angleBetween);
+            //System.Diagnostics.Debug.Print("AI ROT:     " + (currentRotation + 180));  //might need some tweaking as bob occasionally pulls a random 360
 
             if (currentRotation < (angleBetween - 10)) rotateRight();
             if (currentRotation > (angleBetween + 10)) rotateLeft();
@@ -401,13 +380,21 @@ namespace Space {
 
             float currentRotation = Math2.toDegrees(this.getRot());
             float angleBetween = Math2.toDegrees(angleRad);
-            System.Diagnostics.Debug.Print("ANGLE BETWEEN:     " + angleBetween);
-            System.Diagnostics.Debug.Print("AI ROT:     " + (currentRotation + 180));  //might need some tweaking as bob occasionally pulls a random 360
+            //System.Diagnostics.Debug.Print("ANGLE BETWEEN:     " + angleBetween);
+            //System.Diagnostics.Debug.Print("AI ROT:     " + (currentRotation + 180));  //might need some tweaking as bob occasionally pulls a random 360
 
             float targetRotation = currentRotation + 180;
             if (targetRotation > 360) targetRotation -= 360;
             if (targetRotation < (angleBetween - 10)) rotateRight();
             if (targetRotation > (angleBetween + 10)) rotateLeft();
+        }
+
+        public string getOwner() {
+            throw new NotImplementedException();
+        }
+
+        public void setOwner(string newOwner) {
+            throw new NotImplementedException();
         }
     }
 }

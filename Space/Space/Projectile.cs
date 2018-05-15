@@ -105,5 +105,13 @@ namespace Space {
         public void getHit(float power) {
             this.alive = false;
         }
+
+        public string getOwner() {
+            throw new NotImplementedException();
+        }
+
+        public void setOwner(string newOwner) {
+            throw new NotImplementedException();
+        }
     }
 }

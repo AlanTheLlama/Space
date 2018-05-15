@@ -15,7 +15,8 @@ namespace Space {
         private int SizeX { get; set; }
         private int SizeY { get; set; }
 
-        private List<SpaceObject> spaceObjects;
+        public List<SpaceObject> spaceObjects;
+        private List<Faction> factions;
         private Vector2[] solarSystemList;
 
         public World(int sizeX, int sizeY)
@@ -28,7 +29,11 @@ namespace Space {
             Random r = new Random();
             int rInt = r.Next(densityMin, densityMax);
             int solarSystems = rInt / 25;
+            int factionNumber = rInt / 100;
 
+            System.Diagnostics.Debug.Print(factionNumber.ToString());
+
+            factions = new List<Faction>();
             spaceObjects = new List<SpaceObject>();
             solarSystemList = new Vector2[solarSystems];
 
@@ -42,7 +47,7 @@ namespace Space {
                 }
 
                 solarSystemList[i] = new Vector2(x, y);
-                spaceObjects.Add(new Star(x, y, 200, i + 1));
+                spaceObjects.Add(new Star(x, y, 200, i));
             }
 
             for(int i = 0; i < rInt; i++) {
@@ -73,6 +78,10 @@ namespace Space {
 
                     spaceObjects.Add(new Planet(x, y, radius));
                 }
+            }
+
+            for(int i = 0; i < factionNumber; i++) {
+                factions.Add(new Faction());
             }
         }
 
