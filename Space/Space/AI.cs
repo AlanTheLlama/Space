@@ -13,16 +13,26 @@ namespace Space {
 
         //MOVEMENT 
         private MovingObject dangerObject;
+        private List<Vector2> patrolTargets;
+        private List<Object> attackTargets;
+        private SpaceObject miningTarget;
         private Vector2 pos;
         private Vector2 velocity;
+        public Vector2 home;
         private float aimRotation;
         private float rotSpeed;
+        private float baseRotSpeed;
         private float forwardForce;
         private float backwardForce;
         private float sideForce;
         private float mass;
         private float targetSpeed;
-
+        private bool finishedRotating;
+        private bool arrived;
+        private int patrollingTo;
+        public enum Roles { MILITARY, ECONOMY }
+        public Roles role;
+        string owner;
 
         //NON MOVEMENT
         private Vector2 change;
@@ -35,6 +45,8 @@ namespace Space {
         Object playerRef;
 
         //GAMEPLAY
+        public enum State { IDLE, TRAVELLING, PATROLLING, COMBAT, FLEEING, MINING } //not sure how this is going to work lol I only need like two of these rn
+        public State currentState;
         private bool boosting;
         private bool cooling;
         private float radius;
@@ -49,11 +61,16 @@ namespace Space {
             this.aimRotation = (float)0.5 * (float)Math.PI;           //don't press enter.
             this.velocity = new Vector2(0, 0);
             this.rotSpeed = (float)0.08;
+            this.baseRotSpeed = rotSpeed;
             this.forwardForce = (float)2; 
             this.backwardForce = (float)1; 
             this.sideForce = (float)0.5;
             this.mass = 30;
             this.runningAway = false;
+            this.arrived = false;
+            this.patrollingTo = 0;
+            this.patrolTargets = new List<Vector2>();
+            //this.miningTarget = new List<Object>();
 
             this.identifier = r.Next(0, 1000000);
             this.type = ObjectType.AI;
@@ -65,9 +82,31 @@ namespace Space {
             this.boosting = false;
             this.weaponCooldown = 0;
             this.weapons = 24;
+            this.currentState = State.IDLE;
+            this.attackTargets = new List<Object>();
     }
 
         //GETTERS/SETTERS
+
+        public void setRole(Roles r) {
+            role = r;
+        }
+
+        public Roles getRole() {
+            return role;
+        }
+        
+        public void setHome(Vector2 h) {
+            this.home = h;
+        }
+        public void setState(State s) {
+            this.currentState = s;
+        }
+
+        public State getState() {
+            return currentState;
+        }
+
         public bool isBoosting()
         {
             return this.boosting;
@@ -224,10 +263,6 @@ namespace Space {
         {
             pollSpeed();
 
-            if(runningAway) {
-                runFromTarget(dangerObject.getPos());
-            }else rotateToTarget(new Vector2(MainClient.MAP_WIDTH / 2 - 50, MainClient.MAP_HEIGHT / 2));
-
             Vector2 vec = new Vector2(this.pos.X + this.velocity.X, this.pos.Y + this.velocity.Y);
             float x = this.pos.X;
             float y = this.pos.Y;
@@ -245,8 +280,35 @@ namespace Space {
 
         public void update(World w)
         {
-
-            decide();
+            if(this.getSpeed() > 0)
+                Console.WriteLine(this.getSpeed() + "location: " + this.getPos().X + ", " + this.getPos().Y);
+            //BEHAVIOUR
+            switch (currentState) {
+                case State.IDLE:
+                    //TODO
+                    break;
+                case State.COMBAT:
+                    decide();
+                    if (attackTargets.Any()) travelToTarget(attackTargets[0].getPos(), 4, 7);
+                    break;
+                case State.FLEEING:
+                    //TODO
+                    break;
+                case State.TRAVELLING:
+                    //TODO
+                    break;
+                case State.PATROLLING:
+                    patrol();
+                    break;
+                case State.MINING:
+                    if (!arrived) {
+                        travelToTarget(miningTarget.getPos(), 1, 4);
+                    } else returnHome();
+                    break;
+                default:
+                    //CHILL
+                    break;
+            }
             if (weaponCooldown > 0)
             {
                 weaponCooldown--;
@@ -259,20 +321,25 @@ namespace Space {
             return (float)Math.Sqrt(this.velocity.X * this.velocity.X + this.velocity.Y * this.velocity.Y);
         }
 
-        public void distToo(MovingObject mo)
+        public void distanceTo(MovingObject mo)
         {
-            change.X = mo.getPos().X - this.pos.X;
-            change.Y = mo.getPos().Y - this.pos.Y;
-            dist = (float)Math.Sqrt(change.X * change.X + change.Y * change.Y);
+            this.change.X = mo.getPos().X - this.pos.X;
+            this.change.Y = mo.getPos().Y - this.pos.Y;
+            dist = (float)Math.Sqrt(this.change.X * this.change.X + this.change.Y * this.change.Y);
+        }
+        public float distanceTo(Vector2 vc) {
+            this.change.X = vc.X - this.pos.X;
+            this.change.Y = vc.Y - this.pos.Y;
+            return (float)Math.Sqrt(this.change.X * this.change.X + this.change.Y * this.change.Y);
         }
 
         public Laser fireWeapon(MovingObject mo)
         {
             if (weaponCooldown == 0)
             {
-                distToo(mo);
-                float x = change.X;
-                float y = change.Y;
+                distanceTo(mo);
+                float x = this.change.X;
+                float y = this.change.Y;
                 Vector2 angle = Math2.getUnitVector(x, y);
                 Laser laser = new Laser(this.pos, this.weapons, angle, this.identifier);
                 this.weaponCooldown = 4;
@@ -287,8 +354,8 @@ namespace Space {
         public int danger() { //Changed this around a bit
             foreach (Object o in MainClient.players) {
                 if (o.getType() == ObjectType.PLAYER) {
-                    distToo((MovingObject) o);
-                    dangerObject = (MovingObject) o;
+                    distanceTo((MovingObject) o);
+                    this.dangerObject = (MovingObject) o;
                     if (dist <= 200) {
                         playerRef = o;
                         runningAway = true;
@@ -313,7 +380,7 @@ namespace Space {
                 }
             }
             runningAway = false;
-            return 0;
+            return 0; //200,400,600
         }
 
         public void decide() { //Solely combat scenario
@@ -359,18 +426,77 @@ namespace Space {
             if (this.getSpeed() > targetSpeed) this.brake();
         }
 
+        public void addAttackTarget(SpaceObject target) {
+            attackTargets.Add(target);
+        }
+        public void addAttackTarget(MovingObject target) {
+            attackTargets.Add(target);
+        }
+        public void addAttackTarget(Object target) {
+            attackTargets.Add(target);
+        }
+        public void addAttackTarget(AI target) {
+            attackTargets.Add(target);
+        }
+
+        public void addPatrolTarget(SpaceObject target) {
+            patrolTargets.Add(target.getPos());
+        }
+        public void addPatrolTarget(MovingObject target) {
+            patrolTargets.Add(target.getPos());
+        }
+        public void addPatrolTarget(List<Object> target) {
+            foreach(Object o in target) {
+                patrolTargets.Add(o.getPos());
+            }
+        }
+        public void addPatrolTarget(AI target) {
+            patrolTargets.Add(target.getPos());
+        }
+        public void addMiningTarget(SpaceObject target) {
+            miningTarget = target;
+        }
+
         public void rotateToTarget(Vector2 target) {
-            float deltaX = target.X - this.getPos().X;
-            float deltaY = target.Y - this.getPos().Y;
-            float angleRad = (float)Math.Atan2(deltaY, deltaX);
+            float deltaX = 0f, deltaY = 0f, angleRad = 0f;
+            deltaX = target.X - this.getPos().X;
+            deltaY = target.Y - this.getPos().Y;
+            angleRad = (float)Math.Atan2(deltaY, deltaX);
 
             float currentRotation = Math2.toDegrees(this.getRot());
             float angleBetween = Math2.toDegrees(angleRad);
-            //System.Diagnostics.Debug.Print("ANGLE BETWEEN:     " + angleBetween);
-            //System.Diagnostics.Debug.Print("AI ROT:     " + (currentRotation + 180));  //might need some tweaking as bob occasionally pulls a random 360
 
-            if (currentRotation < (angleBetween - 10)) rotateRight();
-            if (currentRotation > (angleBetween + 10)) rotateLeft();
+            this.rotSpeed = 0.06f;
+            //Console.WriteLine("bob:" + currentRotation + " - world dif: " + angleBetween);
+
+            if (currentRotation < angleBetween - 5) {
+                this.rotateRight();
+                finishedRotating = false;
+            }
+            if (currentRotation > angleBetween + 5) {
+                this.rotateLeft();
+                finishedRotating = false;
+            }
+            if (currentRotation > angleBetween - 5 && currentRotation < angleBetween + 5) finishedRotating = true;
+        }
+
+        public void returnHome() {
+            travelToTarget(home, 1, 5);
+        }
+
+        public void travelToTarget(Vector2 target, int turnSpeed, int travelSpeed) {
+            rotateToTarget(target);
+            if(!finishedRotating)targetSpeed = turnSpeed;
+            float distanceToTarget = distanceTo(target);
+
+            if (finishedRotating && (distanceToTarget > 400)) {
+                this.targetSpeed = travelSpeed;
+                arrived = false;
+            }
+            if (distanceToTarget <= 400) {
+                targetSpeed = (distanceToTarget / 400);
+                if (targetSpeed < 1.5) targetSpeed = 1.5f;
+            }
         }
 
         public void runFromTarget(Vector2 target) {
@@ -389,12 +515,24 @@ namespace Space {
             if (targetRotation > (angleBetween + 10)) rotateLeft();
         }
 
+        public void patrol() {
+            if (patrolTargets.Any()) {                          //if there are any locations in the patrol targets vector, start patrolling.
+                if (!arrived) {                                //if it hasn't arrived yet, go there.
+                    travelToTarget(patrolTargets[patrollingTo], 2, 5);
+                } else {
+                    if (patrollingTo == patrolTargets.Count) {
+                        patrollingTo = 0;
+                    } else patrollingTo += 1;                   //if it's arrived, move to the next location - if at the end of the list, go to the start
+                }
+            }
+        }
+
         public string getOwner() {
-            throw new NotImplementedException();
+            return this.owner;
         }
 
         public void setOwner(string newOwner) {
-            throw new NotImplementedException();
+            this.owner = newOwner;
         }
     }
 }

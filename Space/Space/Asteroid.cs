@@ -69,10 +69,22 @@ namespace Space {
         public void update(World w) {; }
 
         public string getOwner() {
-            throw new NotImplementedException();
+            return "this is an asteroid dummy";
         }
 
         public void setOwner(string newOwner) {
+            throw new NotImplementedException();
+        }
+
+        public int getInfluencers() {
+            throw new NotImplementedException();
+        }
+
+        public void findFactionStars() {
+            throw new NotImplementedException();
+        }
+
+        public int getInfluenceRadius() {
             throw new NotImplementedException();
         }
     }

@@ -122,9 +122,9 @@ namespace Space {
             buttonList.Add(optionsButton);
 
             player = new PlayerShip(new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2));
-            bob = new AI(MAP_WIDTH / 2, MAP_HEIGHT / 2 + 100);
+            //bob = new AI(MAP_WIDTH / 2, MAP_HEIGHT / 2 + 100);
             objects.Add(player);
-            objects.Add(bob);
+            //objects.Add(bob);
             players.Add(player);
         }
 
@@ -136,6 +136,10 @@ namespace Space {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) {
                 Exit();
             }
+
+            //bob.travelToTarget(player.getPos(), 1, 4);
+            //bob.rotateToTarget(player.getPos());
+            
 
             if (Keyboard.GetState().IsKeyDown(Keys.Enter) && connected == false) {
                 try {
@@ -245,6 +249,10 @@ namespace Space {
                         }
                     }
                 }
+            }
+
+            foreach(Faction f in world.factions) {
+                f.update();
             }
 
             foreach (Object o in toBeDestroyed) {

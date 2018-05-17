@@ -16,7 +16,8 @@ namespace Space {
         private int SizeY { get; set; }
 
         public List<SpaceObject> spaceObjects;
-        private List<Faction> factions;
+        public List<Faction> factions;
+        public List<Star> starList;
         private Vector2[] solarSystemList;
 
         public World(int sizeX, int sizeY)
@@ -36,6 +37,7 @@ namespace Space {
             factions = new List<Faction>();
             spaceObjects = new List<SpaceObject>();
             solarSystemList = new Vector2[solarSystems];
+            starList = new List<Star>();
 
             for (int i = 0; i < solarSystems; i++) {
                 int x = r.Next(0, SizeX);
@@ -48,6 +50,7 @@ namespace Space {
 
                 solarSystemList[i] = new Vector2(x, y);
                 spaceObjects.Add(new Star(x, y, 200, i));
+                starList.Add((Star) spaceObjects[i]);
             }
 
             for(int i = 0; i < rInt; i++) {
@@ -76,12 +79,26 @@ namespace Space {
                         y = r.Next((int)center.Y - SOL_SYS_RADIUS, (int)center.Y + SOL_SYS_RADIUS);
                     }
 
-                    spaceObjects.Add(new Planet(x, y, radius));
+                    spaceObjects.Add(new Planet(x, y, radius, i));
                 }
             }
 
             for(int i = 0; i < factionNumber; i++) {
                 factions.Add(new Faction());
+            }
+
+            foreach(SpaceObject so in spaceObjects) {           //must run AFTER factions and planets are finished creating
+                if(so.getType() == ObjectType.MINING_PLANET) {
+                    so.findFactionStars();
+                }
+            }
+
+            foreach (Faction f in factions) {
+                f.findContestedPlanets();
+            }
+
+            foreach (Faction f in factions) {
+                f.displayInfo();
             }
         }
 

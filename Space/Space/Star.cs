@@ -80,5 +80,17 @@ namespace Space {
         public void setOwner(string newOwner) {
             owner = newOwner;
         }
+
+        public int getInfluencers() {
+            throw new NotImplementedException();
+        }
+
+        public void findFactionStars() {
+            throw new NotImplementedException();
+        }
+
+        public int getInfluenceRadius() {
+            throw new NotImplementedException();
+        }
     }
 }

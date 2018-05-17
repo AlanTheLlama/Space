@@ -30,9 +30,10 @@ namespace Space {
             return ((float)Math2.getQuadSum(pos2.X - pos1.X, pos2.Y - pos1.Y)) < radius;
         }
 
+
         public static float toDegrees(float rad) {
-            float deg = (rad / (float)Math.PI) * 180f;
-            if (deg < 0) deg += 360f;
+            float deg = rad * (180f / (float)Math.PI);
+            if (deg < 0f) deg += 360f;
 
             return deg;
         }

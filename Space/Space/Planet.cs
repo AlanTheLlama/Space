@@ -19,6 +19,9 @@ namespace Space {
         private bool alive;
         private ObjectType type;
         public static String owner;
+        public int id;
+        public int influenceRadius;
+        public int influencers;
 
         private Random r = new Random();
 
@@ -26,17 +29,20 @@ namespace Space {
         private float iron;
         private float gems;
 
-        public Planet(float x, float y, float radius) {
+        public Planet(float x, float y, float radius, int id) {
             this.pos.X = x;
             this.pos.Y = y;
             this.radius = radius;
             this.health = 10000;
             this.alive = true;
             this.type = ObjectType.MINING_PLANET;
+            this.id = id;
             owner = "Independent";
+            this.influenceRadius = 7500;
 
             this.iron = r.Next(100, 1000);
             this.gems = r.Next(100, 1000);
+
 
         }
 
@@ -49,7 +55,11 @@ namespace Space {
         }
 
         public int getID() {
-            return 0;
+            return id;
+        }
+
+        public int getInfluencers() {
+            return influencers;
         }
 
         public float getRot() {
@@ -106,6 +116,28 @@ namespace Space {
             this.iron -= ret[(int)MineReturn.IRON];
             this.gems -= ret[(int)MineReturn.GEMS];
             return ret;
+        }
+
+        public void findFactionStars() {
+            foreach(Star star in MainClient.world.starList) {
+                if (distanceTo(star.getPos(), this.getPos()) < influenceRadius
+                    && !star.getOwner().Equals("Independent")) {
+                    influencers += 1;
+                    if(influencers > 1)
+                        Console.WriteLine("Found star #" + star.getID() + " " + distanceTo(star.getPos(), this.getPos()).ToString() + " units away, owned by " + star.getOwner() + "\nNearby Occupied Stars: " + influencers);
+                }
+            }
+        }
+
+        public float distanceTo(Vector2 v1, Vector2 v2) {
+            Vector2 change;
+            change.X = v1.X - v2.X;
+            change.Y = v1.Y - v2.Y;
+            return (float)Math.Sqrt(change.X * change.X + change.Y * change.Y);
+        }
+
+        public int getInfluenceRadius() {
+            return influenceRadius;
         }
     }
 }

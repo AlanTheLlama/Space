@@ -10,5 +10,8 @@ namespace Space {
     public interface SpaceObject : Object {
         float getRot();
         float getRadius();
+        int getInfluencers();
+        int getInfluenceRadius();
+        void findFactionStars();
     }
 }
