@@ -281,7 +281,7 @@ namespace Space {
         public void update(World w)
         {
             if(this.getSpeed() > 0)
-                Console.WriteLine(this.getSpeed() + "location: " + this.getPos().X + ", " + this.getPos().Y);
+                //Console.WriteLine(this.getSpeed() + "location: " + this.getPos().X + ", " + this.getPos().Y);   //cpu death
             //BEHAVIOUR
             switch (currentState) {
                 case State.IDLE:

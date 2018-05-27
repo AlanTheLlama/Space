@@ -171,3 +171,9 @@
 /processorParam:TextureFormat=Color
 /build:Images/tile.png
 
+#begin Sounds/music.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/music.wav
+

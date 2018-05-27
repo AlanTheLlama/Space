@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MenuLib;
+using Microsoft.Xna.Framework.Audio;
 
 namespace Space {
     /// <summary>
@@ -22,6 +23,7 @@ namespace Space {
         SpriteBatch spriteBatch;
         SpriteFont font;
         SpriteFont bigFont;
+        List<SoundEffect> soundEffects;
         Camera cam;
         ClientDataHandler handler;
         Timer dataTimer;
@@ -70,6 +72,7 @@ namespace Space {
             buttonList = new List<Button>();
             names = new List<String>();
             players = new List<Object>();
+            soundEffects = new List<SoundEffect>();
 
             ps = PlayState.PLAYING;
 
@@ -113,6 +116,8 @@ namespace Space {
             font = Content.Load<SpriteFont>("File");
             bigFont = Content.Load<SpriteFont>("BiggerFont");
 
+            soundEffects.Add(Content.Load<SoundEffect>("Sounds/music"));
+
             startButton = new Button(Content.Load<Texture2D>("Images/startButton"), null, 20, viewport.Height - 40, 50, 20);
             exitButton = new Button(Content.Load<Texture2D>("Images/exitButton"), null, 90, viewport.Height - 40, 50, 20);
             optionsButton = new Button(Content.Load<Texture2D>("Images/optionsButton"), null, 160, viewport.Height - 40, 50, 20);
@@ -120,6 +125,10 @@ namespace Space {
             buttonList.Add(startButton);
             buttonList.Add(exitButton);
             buttonList.Add(optionsButton);
+
+            var instance = soundEffects[0].CreateInstance();
+            instance.IsLooped = true;
+            instance.Play();
 
             player = new PlayerShip(new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2));
             //bob = new AI(MAP_WIDTH / 2, MAP_HEIGHT / 2 + 100);
