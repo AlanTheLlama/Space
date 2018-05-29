@@ -19,6 +19,8 @@ namespace Space {
         private Vector2 pos;
         private Vector2 velocity;
         public Vector2 home;
+        public SpaceObject destination;
+        public SpaceObject homeStar;
         private float aimRotation;
         private float rotSpeed;
         private float baseRotSpeed;
@@ -29,7 +31,9 @@ namespace Space {
         private float targetSpeed;
         private bool finishedRotating;
         private bool arrived;
+        private bool minedStuff;
         private int patrollingTo;
+        private bool returning;
         public enum Roles { MILITARY, ECONOMY }
         public Roles role;
         string owner;
@@ -68,6 +72,7 @@ namespace Space {
             this.mass = 30;
             this.runningAway = false;
             this.arrived = false;
+            this.returning = false;
             this.patrollingTo = 0;
             this.patrolTargets = new List<Vector2>();
             //this.miningTarget = new List<Object>();
@@ -96,8 +101,10 @@ namespace Space {
             return role;
         }
         
-        public void setHome(Vector2 h) {
+        public void setHome(Vector2 h, SpaceObject hS) {
             this.home = h;
+            this.homeStar = hS;
+            this.destination = homeStar;
         }
         public void setState(State s) {
             this.currentState = s;
@@ -304,9 +311,7 @@ namespace Space {
                     patrol();
                     break;
                 case State.MINING:
-                    if (!arrived) {
-                        travelToTarget(this.miningTarget.getPos(), 1, 4);
-                    } else returnHome();
+                    miningLoop();
                     break;
                 default:
                     //CHILL
@@ -483,7 +488,22 @@ namespace Space {
             if (currentRotation > angleBetween - 5 && currentRotation < angleBetween + 5) finishedRotating = true;
         }
 
+        public void miningLoop() {
+            if(destination == miningTarget) {
+                travelToTarget(homeStar, 1, 5);
+            }
+            if(destination == homeStar) {
+                travelToTarget(miningTarget, 1, 5);
+            }
+        }
+
         public void returnHome() {
+            if(distanceTo(home) <= 100) {
+                returning = false;
+                arrived = false;
+                return;
+            }else returning = true;
+
             travelToTarget(home, 1, 5);
         }
 
@@ -491,14 +511,38 @@ namespace Space {
             rotateToTarget(target);
             if(!finishedRotating)targetSpeed = turnSpeed;
             float distanceToTarget = distanceTo(target);
+            arrived = false;
 
             if (finishedRotating && (distanceToTarget > 400)) {
                 this.targetSpeed = travelSpeed;
-                arrived = false;
             }
             if (distanceToTarget <= 400) {
                 targetSpeed = (distanceToTarget / 400);
                 if (targetSpeed < 1.5) targetSpeed = 1.5f;
+            }
+            if (distanceToTarget <= 100) {
+                targetSpeed = 0;
+                arrived = true;
+            }
+        }
+
+        public void travelToTarget(SpaceObject target, int turnSpeed, int travelSpeed) {
+            rotateToTarget(target.getPos());
+            if (!finishedRotating) targetSpeed = turnSpeed;
+            float distanceToTarget = distanceTo(target.getPos());
+            arrived = false;
+
+            if (finishedRotating && (distanceToTarget > 400)) {
+                this.targetSpeed = travelSpeed;
+            }
+            if (distanceToTarget <= 400) {
+                targetSpeed = (distanceToTarget / 400);
+                if (targetSpeed < 1.5) targetSpeed = 1.5f;
+            }
+            if (distanceToTarget <= 100) {
+                targetSpeed = 0;
+                arrived = true;
+                destination = target;
             }
         }
 

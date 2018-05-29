@@ -192,7 +192,7 @@ namespace Space {
             int rand;
             foreach (AI ship in this.controlledShips) {
                 ship.setOwner(this.name);
-                ship.setHome(controlledStars[0].getPos());
+                ship.setHome(controlledStars[0].getPos(), controlledStars[0]);
                 rand = r.Next(0, 10);
                 if (!bandits) {
                     if (rand <= militaristic) {

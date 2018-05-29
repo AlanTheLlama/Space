@@ -319,8 +319,18 @@ namespace Space {
                                     spriteBatch.DrawString(bigFont, "ID: " + o.getID().ToString(),
                                         new Vector2(topLeft.X + SCREEN_WIDTH * (float)1.4, topLeft.Y + 16), Color.White);
                                     spriteBatch.DrawString(bigFont, "OWNER: \"" + o.getOwner() + "\"",
-                                        new Vector2(topLeft.X + SCREEN_WIDTH * (float)1.4, topLeft.Y - 16), Color.White);
+                                        new Vector2(topLeft.X + SCREEN_WIDTH * (float)1.4, topLeft.Y + 48), Color.White);
                                 }
+                            }
+                            if(o.getType() == ObjectType.AI) {
+                                Vector2 pos = new Vector2(topLeft.X + o.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + o.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
+                                spriteBatch.Draw(minimap_star,
+                                    new Rectangle((int)pos.X, (int)pos.Y, 5, 5),
+                                    null,
+                                    Color.White,
+                                    0,
+                                    new Vector2(minimap_star.Width / 2, minimap_star.Height / 2),
+                                    SpriteEffects.None, 0);
                             }
                         }
                         Vector2 shipPos = new Vector2(topLeft.X + player.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + player.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
@@ -370,7 +380,7 @@ namespace Space {
                                     new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
                                     SpriteEffects.None, 0);
                                 if(o.getType() == ObjectType.AI) {
-                                    spriteBatch.DrawString(font, o.getTask(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                                    spriteBatch.DrawString(font, o.getTask() + "\n" + o.getOwner(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
                                 }
                                 i++;
                                 if (o.getType() == ObjectType.STAR) {
