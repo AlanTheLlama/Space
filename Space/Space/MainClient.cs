@@ -76,8 +76,12 @@ namespace Space {
 
             ps = PlayState.PLAYING;
 
-            world = new World(MAP_WIDTH, MAP_HEIGHT);
-            world.Generate(10000, 12000);
+            //world = new World(MAP_WIDTH, MAP_HEIGHT); //regular world
+            //world.Generate(10000, 12000);
+
+            world = new World(15000, 15000);            //test world
+            world.generateTestWorld();
+
             foreach (SpaceObject so in world.getSpaceObjects()) {
                 objects.Add(so);
             }
@@ -130,7 +134,7 @@ namespace Space {
             instance.IsLooped = true;
             instance.Play();
 
-            player = new PlayerShip(new Vector2(MAP_WIDTH / 2, MAP_HEIGHT / 2));
+            player = new PlayerShip(new Vector2(world.getSizeX() / 2, world.getSizeY() / 2));
             //bob = new AI(MAP_WIDTH / 2, MAP_HEIGHT / 2 + 100);
             objects.Add(player);
             //objects.Add(bob);
@@ -365,6 +369,9 @@ namespace Space {
                                     o.getAngle() + Math2.QUARTER_CIRCLE,
                                     new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
                                     SpriteEffects.None, 0);
+                                if(o.getType() == ObjectType.AI) {
+                                    spriteBatch.DrawString(font, o.getTask(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                                }
                                 i++;
                                 if (o.getType() == ObjectType.STAR) {
                                     spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);

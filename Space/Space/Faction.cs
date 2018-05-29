@@ -24,6 +24,7 @@ namespace Space {
         private int startingShips;
 
         private bool bandits;
+        private bool reevaluate;                                 //when anything CHANGES or periodically check
 
         public Faction() {
             this.controlledShips = new List<AI>();
@@ -32,6 +33,7 @@ namespace Space {
             this.controlledPlanets = new List<SpaceObject>();
             this.contestedPlanets = new List<SpaceObject>();
             this.controlledStars = new List<SpaceObject>();
+            this.reevaluate = true;
 
             decideName();
             isBanditFaction();
@@ -50,8 +52,10 @@ namespace Space {
             assignShipRoles();
         }
 
-        public void update() {
-            think();
+        public void update() {     //decide if it needs to change anything
+            if (reevaluate) {
+                think();
+            }
         }
 
         private void think() {          //that's scary
@@ -77,12 +81,17 @@ namespace Space {
             int ranTarget;
             int ranDist;
             foreach (AI ship in military) {
-                ranDist = r.Next(0, 100);
-                if (ranDist > 50) {
-                    ranTarget = r.Next(contestedPlanets.Count);
-                    ship.addAttackTarget(contestedPlanets[ranTarget]);
-                    ship.setState(AI.State.COMBAT);
-                } else { patrolControlled(); }
+                if (ship.currentState == AI.State.IDLE) {
+                    ranDist = r.Next(0, 100);
+                    if (ranDist > 50) {
+                        if (!ship.attackTargets.Any()) {
+                            Console.WriteLine("No attack targets, adding some");
+                            ranTarget = r.Next(this.contestedPlanets.Count);
+                            ship.addAttackTarget(this.contestedPlanets[ranTarget]);
+                            ship.setState(AI.State.COMBAT);
+                        }
+                    } else { patrolControlled(); }
+                }
             }
         }
 
@@ -90,11 +99,13 @@ namespace Space {
             Random r = new Random();
             int roll;
 
-            foreach(AI ship in military) {
-                roll = r.Next(0, 100);
-                if (roll >= distribute(Tasks.PATROL)) {
-                    //Console.WriteLine(this.name + " set a ship to patrol");
-                    ship.setState(AI.State.PATROLLING);
+            foreach (AI ship in military) {
+                if (ship.currentState == AI.State.IDLE) {
+                    roll = r.Next(0, 100);
+                    if (roll >= distribute(Tasks.PATROL)) {
+                        //Console.WriteLine(this.name + " set a ship to patrol");
+                        ship.setState(AI.State.PATROLLING);
+                    }
                 }
             }
         }

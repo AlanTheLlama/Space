@@ -13,9 +13,9 @@ namespace Space {
 
         //MOVEMENT 
         private MovingObject dangerObject;
-        private List<Vector2> patrolTargets;
-        private List<Object> attackTargets;
-        private SpaceObject miningTarget;
+        public List<Vector2> patrolTargets;
+        public List<Object> attackTargets;
+        public SpaceObject miningTarget;
         private Vector2 pos;
         private Vector2 velocity;
         public Vector2 home;
@@ -280,16 +280,19 @@ namespace Space {
 
         public void update(World w)
         {
-            if(this.getSpeed() > 0)
+            //if(this.getSpeed() > 0)
                 //Console.WriteLine(this.getSpeed() + "location: " + this.getPos().X + ", " + this.getPos().Y);   //cpu death
             //BEHAVIOUR
-            switch (currentState) {
+            switch (this.currentState) {
                 case State.IDLE:
                     //TODO
                     break;
                 case State.COMBAT:
-                    decide();
-                    if (attackTargets.Any()) travelToTarget(attackTargets[0].getPos(), 4, 7);
+                        //decide();
+                        if (this.attackTargets.Any()) {
+                            //Console.WriteLine("Found attack targets");
+                            travelToTarget(this.attackTargets[0].getPos(), 4, 7);
+                        }
                     break;
                 case State.FLEEING:
                     //TODO
@@ -302,7 +305,7 @@ namespace Space {
                     break;
                 case State.MINING:
                     if (!arrived) {
-                        travelToTarget(miningTarget.getPos(), 1, 4);
+                        travelToTarget(this.miningTarget.getPos(), 1, 4);
                     } else returnHome();
                     break;
                 default:
@@ -533,6 +536,10 @@ namespace Space {
 
         public void setOwner(string newOwner) {
             this.owner = newOwner;
+        }
+
+        public string getTask() {
+            return currentState.ToString();
         }
     }
 }

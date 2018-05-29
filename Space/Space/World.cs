@@ -14,6 +14,7 @@ namespace Space {
 
         private int SizeX { get; set; }
         private int SizeY { get; set; }
+        private Vector2 uniCenter;
 
         public List<SpaceObject> spaceObjects;
         public List<Faction> factions;
@@ -24,6 +25,8 @@ namespace Space {
         {
             SizeX = sizeX;
             SizeY = sizeY;
+
+            uniCenter = new Vector2(getSizeX() / 2, getSizeY() / 2);
         }
 
         public void Generate(int densityMin, int densityMax) {
@@ -100,6 +103,65 @@ namespace Space {
             foreach (Faction f in factions) {
                 f.displayInfo();
             }
+        }
+
+        public void generateTestWorld() {                            //test world
+            int factionNumber = 2;
+            int solarSystems = 15;
+
+            factions = new List<Faction>();
+            spaceObjects = new List<SpaceObject>();
+            solarSystemList = new Vector2[solarSystems];
+            starList = new List<Star>();
+            
+            addStar(uniCenter.X - 5000, uniCenter.Y, 0);
+            addPlanet(solarSystemList[0].X + 1000, (int)solarSystemList[0].Y, 1);
+            addPlanet(solarSystemList[0].X - 2000, (int)solarSystemList[0].Y + 500, 2);
+            addPlanet(solarSystemList[0].X + 1000, (int)solarSystemList[0].Y, 3);
+
+            addStar(uniCenter.X + 5000, uniCenter.Y, 4);
+            addPlanet(solarSystemList[4].X + 1000, (int)solarSystemList[4].Y, 5);
+            addPlanet(solarSystemList[4].X - 2000, (int)solarSystemList[4].Y + 500, 6);
+            addPlanet(solarSystemList[4].X + 1000, (int)solarSystemList[4].Y, 7);
+
+            addStar(uniCenter.X, uniCenter.Y - 5000, 8);
+            addPlanet(solarSystemList[8].X + 1000, (int)solarSystemList[8].Y, 9);
+            addPlanet(solarSystemList[8].X - 2000, (int)solarSystemList[8].Y + 500, 10);
+            addPlanet(solarSystemList[8].X + 1000, (int)solarSystemList[8].Y, 11);
+
+            addStar(uniCenter.X, uniCenter.Y + 5000, 12);
+            addPlanet(solarSystemList[12].X + 1000, (int)solarSystemList[12].Y, 13);
+            addPlanet(solarSystemList[12].X - 2000, (int)solarSystemList[12].Y + 500, 14);
+            addPlanet(solarSystemList[12].X + 1000, (int)solarSystemList[12].Y, 15);
+
+            //Faction Initialization
+            for (int i = 0; i < factionNumber; i++) {
+                factions.Add(new Faction());
+            }
+
+            foreach (SpaceObject so in spaceObjects) {           //must run AFTER factions and planets are finished creating
+                if (so.getType() == ObjectType.MINING_PLANET) {
+                    so.findFactionStars();
+                }
+            }
+
+            foreach (Faction f in factions) {
+                f.findContestedPlanets();
+            }
+
+            foreach (Faction f in factions) {
+                f.displayInfo();
+            }
+        }
+
+        private void addStar(float x, float y, int i) {
+            solarSystemList[i] = new Vector2(x, y);
+            spaceObjects.Add(new Star(x, y, 200, i));
+            starList.Add((Star)spaceObjects[i]);
+        }
+
+        private void addPlanet(float x, float y, int i) {
+            spaceObjects.Add(new Planet(x, y, 100, i));
         }
 
         private bool tooCloseAst(Vector2 newSpaceObject, float rad) {

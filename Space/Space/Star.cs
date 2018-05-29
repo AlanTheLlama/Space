@@ -92,5 +92,9 @@ namespace Space {
         public int getInfluenceRadius() {
             throw new NotImplementedException();
         }
+
+        public string getTask() {
+            throw new NotImplementedException();
+        }
     }
 }

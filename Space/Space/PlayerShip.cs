@@ -371,5 +371,9 @@ namespace Space
         public void setOwner(string newOwner) {
             throw new NotImplementedException();
         }
+
+        public string getTask() {
+            throw new NotImplementedException();
+        }
     }
 }

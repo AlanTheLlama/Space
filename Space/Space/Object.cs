@@ -29,5 +29,6 @@ namespace Space {
         float getAngle();
         String getOwner();
         void setOwner(string newOwner);
+        String getTask();
     }
 }
