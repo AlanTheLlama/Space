@@ -15,6 +15,9 @@ namespace Space {
         private MovingObject dangerObject;
         public List<Vector2> patrolTargets;
         public List<Object> attackTargets;
+        public List<AI> nearbyShips;
+        public List<AI> nearbyCombatants;
+        public List<string> publicEnemies;   //kek
         public SpaceObject miningTarget;
         private Vector2 pos;
         private Vector2 velocity;
@@ -49,7 +52,7 @@ namespace Space {
         Object playerRef;
 
         //GAMEPLAY
-        public enum State { IDLE, TRAVELLING, PATROLLING, COMBAT, FLEEING, MINING } //not sure how this is going to work lol I only need like two of these rn
+        public enum State { IDLE, TRAVELLING, PATROLLING, COMBAT, DEFENDING, FLEEING, MINING } //not sure how this is going to work lol I only need like two of these rn
         public State currentState;
         private bool boosting;
         private bool cooling;
@@ -75,13 +78,16 @@ namespace Space {
             this.returning = false;
             this.patrollingTo = 0;
             this.patrolTargets = new List<Vector2>();
+            this.publicEnemies = new List<string>();
+            this.nearbyCombatants = new List<AI>();
+            this.nearbyShips = new List<AI>();
             //this.miningTarget = new List<Object>();
 
             this.identifier = r.Next(0, 1000000);
             this.type = ObjectType.AI;
 
             this.radius = 32;
-            this.shield = 100;
+            this.shield = 5000;
             this.alive = true;
             this.cooling = false;
             this.boosting = false;
@@ -292,27 +298,42 @@ namespace Space {
             //BEHAVIOUR
             switch (this.currentState) {
                 case State.IDLE:
-                    //TODO
+                    //chill with bob ross
                     break;
+
                 case State.COMBAT:
-                        //decide();
-                        if (this.attackTargets.Any()) {
-                            //Console.WriteLine("Found attack targets");
-                            travelToTarget(this.attackTargets[0].getPos(), 4, 7);
-                        }
+                    targetSpeed = 1;
+                    this.leftThrust();
+                    rotateToTarget(nearbyCombatants[0].getPos());
+                    fireWeapon(nearbyCombatants[0]);
                     break;
+
+                case State.DEFENDING:
+                    nearbyShips = obtainSurroundings();
+                    if (nearbyCombatants.Any()) this.currentState = State.COMBAT;
+                    break;
+
                 case State.FLEEING:
                     //TODO
                     break;
+
                 case State.TRAVELLING:
-                    //TODO
+                    if (this.attackTargets.Any()) {
+                        travelToTarget(this.attackTargets[0].getPos(), 4, 7);
+                    }
+                    nearbyShips = obtainSurroundings();
+                    if (nearbyCombatants.Any()) this.currentState = State.COMBAT;
+                    if (arrived) this.currentState = State.DEFENDING;
                     break;
+
                 case State.PATROLLING:
                     patrol();
                     break;
+
                 case State.MINING:
                     miningLoop();
                     break;
+
                 default:
                     //CHILL
                     break;
@@ -341,7 +362,7 @@ namespace Space {
             return (float)Math.Sqrt(this.change.X * this.change.X + this.change.Y * this.change.Y);
         }
 
-        public Laser fireWeapon(MovingObject mo)
+        public void fireWeapon(MovingObject mo)
         {
             if (weaponCooldown == 0)
             {
@@ -350,10 +371,11 @@ namespace Space {
                 float y = this.change.Y;
                 Vector2 angle = Math2.getUnitVector(x, y);
                 Laser laser = new Laser(this.pos, this.weapons, angle, this.identifier);
+                MainClient.objects.Add(laser);
                 this.weaponCooldown = 4;
-                return laser;
+                return;
             }
-            return null;
+            return;
         }
 
 
@@ -465,6 +487,24 @@ namespace Space {
             miningTarget = target;
         }
 
+        public List<AI> obtainSurroundings() {
+            List<AI> surroundingShips = new List<AI>();
+
+            for (int i = 0; i < MainClient.world.factions.Count(); i++) {
+                foreach (AI ship in MainClient.world.factions[i].controlledShips) {
+                    if(distanceTo(ship.getPos()) < 1500) {
+                        surroundingShips.Add(ship);
+                        if(ship.attackTargets.Contains(this.attackTargets[0]) && ship.getOwner() != this.getOwner()) {
+                            alertFaction(ship.getOwner());
+                        }
+                        if (publicEnemies.Any() && publicEnemies.Contains(ship.getOwner())) nearbyCombatants.Add(ship);
+                    }
+                }
+            }
+
+            return surroundingShips;
+        }
+
         public void rotateToTarget(Vector2 target) {
             float deltaX = 0f, deltaY = 0f, angleRad = 0f;
             deltaX = target.X - this.getPos().X;
@@ -486,6 +526,12 @@ namespace Space {
                 finishedRotating = false;
             }
             if (currentRotation > angleBetween - 5 && currentRotation < angleBetween + 5) finishedRotating = true;
+        }
+
+        public void alertFaction(string badguys) {
+            foreach (Faction f in MainClient.world.factions) {
+                if (f.name == this.getOwner()) f.recieveBaddieAlert(badguys);
+            }
         }
 
         public void miningLoop() {

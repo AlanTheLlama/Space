@@ -14,9 +14,10 @@ namespace Space {
         public List<SpaceObject> controlledPlanets;
         public List<SpaceObject> contestedPlanets;
         public List<SpaceObject> controlledStars;
+        public List<string> publicEnemies;
         private enum Tasks { PATROL, ATTACK, DEFEND, MINE, SCOUT}
 
-        private String name;
+        public String name;
 
         private int militaristic, economical, aggression;          //characteristics that determine ship composition etc.
         private int patrolDist = 50;
@@ -33,6 +34,7 @@ namespace Space {
             this.controlledPlanets = new List<SpaceObject>();
             this.contestedPlanets = new List<SpaceObject>();
             this.controlledStars = new List<SpaceObject>();
+            this.publicEnemies = new List<string>();
             this.reevaluate = true;
 
             decideName();
@@ -64,6 +66,11 @@ namespace Space {
             } else patrolControlled();
         }
 
+        public void recieveBaddieAlert(string badguys) {
+            this.publicEnemies.Add(badguys);
+            foreach (AI ship in controlledShips) ship.publicEnemies = this.publicEnemies;
+        }
+
         private void assignMilitarySingleTarget(Object target) {
 
         }
@@ -88,7 +95,7 @@ namespace Space {
                             Console.WriteLine("No attack targets, adding some");
                             ranTarget = r.Next(this.contestedPlanets.Count);
                             ship.addAttackTarget(this.contestedPlanets[ranTarget]);
-                            ship.setState(AI.State.COMBAT);
+                            ship.setState(AI.State.TRAVELLING);
                         }
                     } else { patrolControlled(); }
                 }

@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MenuLib;
 using Microsoft.Xna.Framework.Audio;
+using System.Linq;
 
 namespace Space {
     /// <summary>
@@ -247,7 +248,7 @@ namespace Space {
 
             List<Object> toBeDestroyed = new List<Object>();
 
-            foreach (Object o in objects) {
+            foreach (Object o in objects.ToList()) {
                 if (!o.isAlive()) {
                     toBeDestroyed.Add(o);
                 } else {
@@ -390,7 +391,8 @@ namespace Space {
                         }
                         foreach (Object o in objects) {
                             ObjectType type = o.getType();
-                            if (type == ObjectType.PROJECTILE && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                            Console.Write(o.getType().ToString());
+                            if (type == ObjectType.PROJECTILE/* && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)*/) {
                                 spriteBatch.Draw(o.getTexture(),
                                     new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
                                     null,
@@ -398,6 +400,7 @@ namespace Space {
                                     o.getAngle() + Math2.QUARTER_CIRCLE,
                                     new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
                                     SpriteEffects.None, 0);
+                                Console.Write("drawing projectile");
                                 i++;
                                 if (o.getType() == ObjectType.STAR) {
                                     spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
