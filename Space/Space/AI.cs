@@ -311,7 +311,7 @@ namespace Space {
         {
             if(scanCooldown == 0) {
                 nearbyShips = obtainSurroundings();      //band-aid fix for heavily taxing obtainSurroundings()
-                scanCooldown = 25;
+                scanCooldown = 200;
             }
             scanCooldown--;
             
@@ -466,10 +466,10 @@ namespace Space {
         }
 
         public bool isHit(Object o) {
-            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
-            if (o.getType() == ObjectType.PROJECTILE) {
-                return collision.Contains(o.getPos());
-            }
+            //return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            //if (o.getType() == ObjectType.PROJECTILE) {
+            //    return collision.Contains(o.getPos());
+            //}
             return false;
         }
 

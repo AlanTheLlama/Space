@@ -16,8 +16,6 @@ namespace Space {
         private int identifier;
         private string owner = "Independent";
 
-        private Random r = new Random();
-
         public Rectangle getCircle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Star(float x, float y, float radius, int identifier) {
@@ -63,9 +61,9 @@ namespace Space {
         }
 
         public bool isHit(Object o) {
-            if (o.getType() == ObjectType.PROJECTILE) {
+            /*if (o.getType() == ObjectType.PROJECTILE) {
                 return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
-            }
+            }*/
             return false;
         }
 

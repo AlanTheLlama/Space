@@ -17,7 +17,6 @@ namespace Space {
         private int radius;
 
         private ObjectType type;
-        Random r = new Random();
         private int originID;
         public Circle rad;
 
@@ -28,7 +27,7 @@ namespace Space {
             this.power = power;
             this.angle = angle;
             this.lifetime = 100;
-            this.identifier = r.Next(0, 1000000);
+            this.identifier = MainClient.r.Next(0, 1000000);
             this.radius = 2;
 
             this.type = ObjectType.PROJECTILE;
@@ -81,12 +80,13 @@ namespace Space {
         }
 
         public bool isHit(Object o) {
-            if (o.getID() == this.getID()) {
+            //if (o.getID() == this.getID()) {
                 //Console.WriteLine("Not hitting self");
-                return false;
-            }
+                //return false;
+            //}
             //Console.WriteLine("Projectile from " + this.originID + " hit " + o.getID());
-            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            //return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            return false;
         }
 
         public void setCoords(float x, float y, float rot) {

@@ -68,8 +68,10 @@ namespace Space {
         }
 
         public void recieveBaddieAlert(string badguys) {
-            this.publicEnemies.Add(badguys);
-            foreach (AI ship in controlledShips) ship.publicEnemies = this.publicEnemies;
+            if (!publicEnemies.Contains(badguys)) {
+                this.publicEnemies.Add(badguys);
+                foreach (AI ship in controlledShips) ship.publicEnemies = this.publicEnemies;
+            }
         }
 
         private void assignMilitarySingleTarget(Object target) {
