@@ -7,12 +7,14 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Space {
-    class Asteroid : SpaceObject {
+    public class Asteroid : SpaceObject {
         private Vector2 pos;
         private float radius;
         private float health;
         private bool alive;
         private ObjectType type;
+
+        public Rectangle getCircle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Asteroid(float x, float y, float radius) {
             this.pos.X = x;
@@ -56,7 +58,8 @@ namespace Space {
         }
 
         public bool isHit(Object o) {
-            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            return false;
+            //return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
         }
 
         public void getHit(float power) {
@@ -89,6 +92,10 @@ namespace Space {
         }
 
         public string getTask() {
+            throw new NotImplementedException();
+        }
+
+        Circle Object.getCircle() {
             throw new NotImplementedException();
         }
     }

@@ -278,7 +278,7 @@ namespace Space {
                 }
             }
 
-            foreach(Faction f in world.factions) {
+            foreach (Faction f in world.factions) {
                 f.update();
             }
 

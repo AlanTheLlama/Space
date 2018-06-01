@@ -44,6 +44,7 @@
     <Compile Include="Camera.cs" />
     <Compile Include="Asteroid.cs" />
     <Compile Include="AI.cs" />
+    <Compile Include="Circle.cs" />
     <Compile Include="ClientDataHandler.cs" />
     <Compile Include="Faction.cs" />
     <Compile Include="Math2.cs" />

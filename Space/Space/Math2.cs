@@ -27,6 +27,7 @@ namespace Space {
         }
 
         public static bool inRadius(Vector2 pos1, Vector2 pos2, float radius) {
+            
             return ((float)Math2.getQuadSum(pos2.X - pos1.X, pos2.Y - pos1.Y)) < radius;
         }
 

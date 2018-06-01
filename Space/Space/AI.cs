@@ -15,6 +15,7 @@ namespace Space {
         private MovingObject dangerObject;
         public List<Vector2> patrolTargets;
         public List<Object> attackTargets;
+        List<AI> surroundingShips;
         public List<AI> nearbyShips;
         public List<AI> nearbyCombatants;
         public List<string> publicEnemies;   //kek
@@ -44,6 +45,8 @@ namespace Space {
         //NON MOVEMENT
         private Vector2 change;
         private float dist;
+        Circle detector;
+        Rectangle collision;
 
         //SERVER
         private int identifier;
@@ -61,6 +64,10 @@ namespace Space {
         private bool runningAway;
         private float weaponCooldown;
         private float weapons;
+        private float scanCooldown;
+        private Texture2D tex;
+
+        public Rectangle getCircle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public AI (float x, float y) { 
             this.pos = new Vector2(x, y);
@@ -80,11 +87,15 @@ namespace Space {
             this.publicEnemies = new List<string>();
             this.nearbyCombatants = new List<AI>();
             this.nearbyShips = new List<AI>();
+            this.surroundingShips = new List<AI>();
             //this.miningTarget = new List<Object>();
+            tex = MainClient.enemy;
 
             this.type = ObjectType.AI;
 
             this.radius = 32;
+            this.detector = new Circle((int)this.pos.X, (int)this.pos.Y, 750);
+            this.collision = new Rectangle((int)this.pos.X, (int)this.pos.Y, 72, 91);
             this.shield = 200;
             this.alive = true;
             this.cooling = false;
@@ -94,6 +105,7 @@ namespace Space {
             this.currentState = State.IDLE;
             this.attackTargets = new List<Object>();
             this.setIdentifier();
+            this.scanCooldown = 0;
             Console.WriteLine("New AI created with ID " + this.identifier);
         }
 
@@ -297,8 +309,14 @@ namespace Space {
 
         public void update(World w)
         {
+            if(scanCooldown == 0) {
+                nearbyShips = obtainSurroundings();      //band-aid fix for heavily taxing obtainSurroundings()
+                scanCooldown = 25;
+            }
+            scanCooldown--;
+            
             //if(this.getSpeed() > 0)
-                //Console.WriteLine(this.getSpeed() + "location: " + this.getPos().X + ", " + this.getPos().Y);   //cpu death
+            //Console.WriteLine(this.getSpeed() + "location: " + this.getPos().X + ", " + this.getPos().Y);   //cpu death
             //BEHAVIOUR
             switch (this.currentState) {
                 case State.IDLE:
@@ -306,7 +324,6 @@ namespace Space {
                     break;
 
                 case State.COMBAT:
-                    nearbyShips = obtainSurroundings();
                     this.leftThrust();
                     if (!nearbyCombatants.Any() && attackTargets.Any()) this.currentState = State.TRAVELLING;
                     if (!nearbyCombatants.Any() && !attackTargets.Any()) this.currentState = State.PATROLLING;
@@ -318,7 +335,6 @@ namespace Space {
                     break;
 
                 case State.DEFENDING:
-                    nearbyShips = obtainSurroundings();
                     if (nearbyCombatants.Any()) this.currentState = State.COMBAT;
                     break;
 
@@ -330,7 +346,6 @@ namespace Space {
                     if (this.attackTargets.Any()) {
                         travelToTarget(this.attackTargets[0].getPos(), 4, 7);
                     }
-                    nearbyShips = obtainSurroundings();
                     if (nearbyCombatants.Any()) this.currentState = State.COMBAT;
                     if (arrived) this.currentState = State.DEFENDING;
                     break;
@@ -381,7 +396,7 @@ namespace Space {
                 Vector2 angle = Math2.getUnitVector(x, y);
                 Projectile laser = new Projectile(this.pos, this.weapons, angle, this.getID());
                 MainClient.objects.Add(laser);
-                Console.WriteLine("Laser " + this.getID() + " firing");
+                //Console.WriteLine("Laser " + this.getID() + " firing");
                 this.weaponCooldown = 20;
                 return;
             }
@@ -452,6 +467,10 @@ namespace Space {
 
         public bool isHit(Object o) {
             return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            if (o.getType() == ObjectType.PROJECTILE) {
+                return collision.Contains(o.getPos());
+            }
+            return false;
         }
 
         public void getHit(float power) {
@@ -499,18 +518,22 @@ namespace Space {
         }
 
         public List<AI> obtainSurroundings() {
-            List<AI> surroundingShips = new List<AI>();
+            surroundingShips.Clear();
 
             for (int i = 0; i < MainClient.world.factions.Count(); i++) {
-                foreach (AI ship in MainClient.world.factions[i].controlledShips) {
-                    if (ship.getOwner() != this.getOwner() && !surroundingShips.Contains(ship) && ship.isAlive()) {
+                foreach (AI ship in MainClient.world.factions[i].military) {
+                    if (ship.getOwner() != this.owner && !surroundingShips.Contains(ship) && Math.Abs(ship.pos.X - this.pos.X) < 5000) {
                         if (distanceTo(ship.getPos()) < 1500) {
                             surroundingShips.Add(ship);
-                            if (ship.attackTargets.Contains(this.attackTargets[0]) && ship.getOwner() != this.getOwner()) {
-                                alertFaction(ship.getOwner());
-                            }
-                            if (publicEnemies.Any() && publicEnemies.Contains(ship.getOwner()) && !nearbyCombatants.Contains(ship) && ship.getRole() == Roles.MILITARY) {
-                                nearbyCombatants.Add(ship);
+                            try {
+                                if (ship.attackTargets.Contains(this.attackTargets[0]) && ship.getOwner() != this.getOwner()) {
+                                    alertFaction(ship.getOwner());
+                                }
+                                if (publicEnemies.Any() && publicEnemies.Contains(ship.getOwner()) && !nearbyCombatants.Contains(ship) && ship.getRole() == Roles.MILITARY) {
+                                    nearbyCombatants.Add(ship);
+                                }
+                            }catch(ArgumentOutOfRangeException ie) {
+                                Console.WriteLine("List empty" + ie.ToString());
                             }
                         }
                     }
@@ -519,7 +542,7 @@ namespace Space {
 
             checkDead();
 
-            Console.WriteLine("Ship " + this.getID() + " found " + nearbyCombatants.Count() + " nearby combatants");
+            //Console.WriteLine("Ship " + this.getID() + " found " + nearbyCombatants.Count() + " nearby combatants");
 
             return surroundingShips;
         }
@@ -676,6 +699,10 @@ namespace Space {
 
         public string getTask() {
             return currentState.ToString();
+        }
+
+        Circle Object.getCircle() {
+            throw new NotImplementedException();
         }
     }
 }

@@ -18,6 +18,8 @@ namespace Space {
 
         private Random r = new Random();
 
+        public Rectangle getCircle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public Star(float x, float y, float radius, int identifier) {
             this.pos.X = x;
             this.pos.Y = y;
@@ -61,7 +63,10 @@ namespace Space {
         }
 
         public bool isHit(Object o) {
-            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            if (o.getType() == ObjectType.PROJECTILE) {
+                return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            }
+            return false;
         }
 
         public void getHit(float power) {
@@ -94,6 +99,10 @@ namespace Space {
         }
 
         public string getTask() {
+            throw new NotImplementedException();
+        }
+
+        Circle Object.getCircle() {
             throw new NotImplementedException();
         }
     }

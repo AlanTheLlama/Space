@@ -18,6 +18,8 @@ namespace Space {
     };
 
     public interface Object {
+        //Rectangle getCircle { get; set; }
+        Circle getCircle();
         bool isHit(Object o);
         Vector2 getPos();
         void getHit(float power);

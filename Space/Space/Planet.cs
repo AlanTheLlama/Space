@@ -22,12 +22,13 @@ namespace Space {
         public int id;
         public int influenceRadius;
         public int influencers;
-
-        private Random r = new Random();
+        public Circle rad;
 
         //Resources
         private float iron;
         private float gems;
+
+        public Rectangle getCircle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Planet(float x, float y, float radius, int id) {
             this.pos.X = x;
@@ -40,10 +41,10 @@ namespace Space {
             owner = "Independent";
             this.influenceRadius = 7500;
 
-            this.iron = r.Next(100, 1000);
-            this.gems = r.Next(100, 1000);
+            this.iron = MainClient.r.Next(100, 1000);
+            this.gems = MainClient.r.Next(100, 1000);
 
-
+            this.rad = new Circle((int)this.pos.X + (int)this.radius, (int)this.pos.Y + (int)this.radius, (int)this.radius);
         }
 
         public Texture2D getTexture() {
@@ -83,7 +84,8 @@ namespace Space {
         }
 
         public bool isHit(Object o) {
-            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            
+            return false;
         }
 
         public void getHit(float power) {
@@ -105,8 +107,8 @@ namespace Space {
 
         public float[] mine(float power) {
             float[] ret = { 0, 0 };
-            ret[(int)MineReturn.IRON] = (float)0.01*r.Next(1*(int)power, 5*(int)power);
-            ret[(int)MineReturn.GEMS] = (float)0.01*r.Next(1 * (int)power, 2 * (int)power);
+            ret[(int)MineReturn.IRON] = (float)0.01* MainClient.r.Next(1*(int)power, 5*(int)power);
+            ret[(int)MineReturn.GEMS] = (float)0.01* MainClient.r.Next(1 * (int)power, 2 * (int)power);
             if (this.iron < ret[(int)MineReturn.IRON]) {
                 ret[(int)MineReturn.IRON] = this.iron;
             }
@@ -141,6 +143,10 @@ namespace Space {
         }
 
         public string getTask() {
+            throw new NotImplementedException();
+        }
+
+        Circle Object.getCircle() {
             throw new NotImplementedException();
         }
     }

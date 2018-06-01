@@ -93,7 +93,7 @@ namespace Space {
                     ranDist = r.Next(0, 100);
                     if (ranDist > 50) {
                         if (!ship.attackTargets.Any()) {
-                            Console.WriteLine("No attack targets, adding some");
+                            //Console.WriteLine("No attack targets, adding some");
                             ranTarget = r.Next(this.contestedPlanets.Count);
                             ship.addAttackTarget(this.contestedPlanets[ranTarget]);
                             ship.setState(AI.State.TRAVELLING);

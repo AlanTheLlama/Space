@@ -17,6 +17,7 @@ namespace Space {
         private Vector2 uniCenter;
 
         public List<SpaceObject> spaceObjects;
+        public List<Asteroid> asteroidJail;
         public List<Faction> factions;
         public List<Star> starList;
         private Vector2[] solarSystemList;
@@ -27,6 +28,7 @@ namespace Space {
             SizeY = sizeY;
 
             uniCenter = new Vector2(getSizeX() / 2, getSizeY() / 2);
+            asteroidJail = new List<Asteroid>();
         }
 
         public void Generate(int densityMin, int densityMax) {
@@ -68,7 +70,7 @@ namespace Space {
                         y = r.Next(0, SizeY);
                     }
 
-                    spaceObjects.Add(new Asteroid(x, y, radius));
+                    asteroidJail.Add(new Asteroid(x, y, radius));
                 } else {
                     int solSys = r.Next(0, solarSystems);
                     Vector2 center = solarSystemList[solSys];
@@ -135,6 +137,7 @@ namespace Space {
             addPlanet(solarSystemList[12].X + 1000, (int)solarSystemList[12].Y, 15);
 
             addPlanet(MainClient.world.getSizeX() / 2, MainClient.world.getSizeY() / 2, 16);
+            asteroidJail.Add(new Asteroid(30, 30, 10));
 
             //Faction Initialization
             for (int i = 0; i < factionNumber; i++) {

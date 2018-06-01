@@ -50,6 +50,8 @@ namespace Space
         //DEFINITION
         private ObjectType type;
 
+        public Rectangle getCircle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public PlayerShip(Vector2 vec)
         {
             this.pos = vec;
@@ -381,6 +383,10 @@ namespace Space
         }
 
         public string getTask() {
+            throw new NotImplementedException();
+        }
+
+        Circle Object.getCircle() {
             throw new NotImplementedException();
         }
     }
