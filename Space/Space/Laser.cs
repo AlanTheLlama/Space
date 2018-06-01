@@ -11,6 +11,7 @@ namespace Space {
         // BASIC PROJECTILE HAS NO EXTRA FEATURES FOR NOW
 
         public Laser(Vector2 pos, float power, Vector2 angle, int origin) : base(pos, power, angle, origin) {
+            
         }
 
         public new ObjectType getType() {

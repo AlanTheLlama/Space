@@ -52,6 +52,7 @@ namespace Space {
             this.aggression = r.Next(-5, 5);
 
             assignShipRoles();
+            findPlanetsToMine();
         }
 
         public void update() {     //decide if it needs to change anything
@@ -111,7 +112,7 @@ namespace Space {
                     roll = r.Next(0, 100);
                     if (roll >= distribute(Tasks.PATROL)) {
                         //Console.WriteLine(this.name + " set a ship to patrol");
-                        ship.setState(AI.State.PATROLLING);
+                        patrolControlled(ship);
                     }
                 }
             }
@@ -119,7 +120,7 @@ namespace Space {
 
         private void patrolControlled(AI ship) {
             ship.setState(AI.State.PATROLLING);
-            ship.addPatrolTarget((SpaceObject) controlledPlanets);
+            ship.addPatrolTarget(controlledPlanets);
         }
 
         private int distribute(Tasks task) {   //Faction keeps track of when tasks are successful and unsuccessful to alter the distribution for the future
@@ -171,7 +172,7 @@ namespace Space {
 
         private void generateStartingShips() {
             Random r = new Random();
-            startingShips = r.Next(1, 15);
+            startingShips = r.Next(5, 15);
             
             float x = 0, y = 0;
 
@@ -204,14 +205,10 @@ namespace Space {
                 if (!bandits) {
                     if (rand <= militaristic) {
                         ship.setRole(AI.Roles.MILITARY);       //say you roll a 7 for militaristic in the generation - you have a 70% chance of each ship being military
-                        military.Add(ship);
+                        this.military.Add(ship);
                     } else {
                         ship.setRole(AI.Roles.ECONOMY);
-                        workers.Add(ship);
-                        if (controlledPlanets.Any()) {
-                            ship.addMiningTarget(controlledPlanets[r.Next(0, controlledPlanets.Count)]);
-                            ship.setState(AI.State.MINING);
-                        }
+                        this.workers.Add(ship);
                     }
                 }
             }
@@ -229,6 +226,15 @@ namespace Space {
                     controlledStars.Add(MainClient.world.getSpaceObjects()[rInt]);
                     MainClient.world.getSpaceObjects()[rInt].setOwner(this.name);
                     break;
+                }
+            }
+        }
+
+        private void findPlanetsToMine() {
+            if (controlledPlanets.Any()) {
+                foreach (AI ship in this.workers) {
+                    ship.addMiningTarget(controlledPlanets[MainClient.r.Next(0, controlledPlanets.Count)]);
+                    ship.setState(AI.State.MINING);
                 }
             }
         }

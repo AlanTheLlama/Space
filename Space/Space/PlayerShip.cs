@@ -172,6 +172,10 @@ namespace Space
 
         public void rotateRight()
         {
+            if (this.isBoosting()) {
+                this.rotSpeed = this.rotSpeed / 4;
+            } else this.rotSpeed = (float)0.04;
+
             this.aimRotation = this.aimRotation + this.rotSpeed;
             if (this.aimRotation > 2 * ((float)Math.PI))
             {
@@ -182,6 +186,10 @@ namespace Space
 
         public void rotateLeft()
         {
+            if (this.isBoosting()) {
+                this.rotSpeed = this.rotSpeed / 4;
+            } else this.rotSpeed = (float)0.04;
+
             this.aimRotation = this.aimRotation - this.rotSpeed;
             if (this.aimRotation < 0)
             {
@@ -204,8 +212,8 @@ namespace Space
 
         public void leftThrust() {
             float left = this.aimRotation - (float)0.5 * (float)Math.PI;
-            if (left > 2 * Math.PI) {
-                left -= 2 * (float)Math.PI;
+            if (left > 3 * Math.PI) {
+                left -= 3 * (float)Math.PI;
             }
             this.velocity.X = this.velocity.X + (float)Math.Cos(left) * this.sideForce / this.mass;
             this.velocity.Y = this.velocity.Y + (float)Math.Sin(left) * this.sideForce / this.mass;
@@ -217,7 +225,7 @@ namespace Space
         public void rightThrust() {
             float right = this.aimRotation + (float)0.5 * (float)Math.PI;
             if (right < 0) {
-                right += 2 * (float)Math.PI;
+                right += 3 * (float)Math.PI;
             }
             this.velocity.X = this.velocity.X + (float)Math.Cos(right) * this.sideForce / this.mass;
             this.velocity.Y = this.velocity.Y + (float)Math.Sin(right) * this.sideForce / this.mass;

@@ -134,6 +134,8 @@ namespace Space {
             addPlanet(solarSystemList[12].X - 2000, (int)solarSystemList[12].Y + 500, 14);
             addPlanet(solarSystemList[12].X + 1000, (int)solarSystemList[12].Y, 15);
 
+            addPlanet(MainClient.world.getSizeX() / 2, MainClient.world.getSizeY() / 2, 16);
+
             //Faction Initialization
             for (int i = 0; i < factionNumber; i++) {
                 factions.Add(new Faction());

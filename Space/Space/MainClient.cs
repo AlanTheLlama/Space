@@ -30,13 +30,15 @@ namespace Space {
         Timer dataTimer;
         AI bob;
         Button startButton, exitButton, optionsButton;
+        public static Random r;
 
         public static float MAX_SPEED = 9;
-        public static float RENDER_RADIUS = 2000;
+        public static float RENDER_RADIUS = 7000;
         public static int MAP_WIDTH = 300000;
         public static int MAP_HEIGHT = 180000;
-        public static int SCREEN_WIDTH = 800;
-        public static int SCREEN_HEIGHT = 480;
+        public static int SCREEN_WIDTH = 1920;
+        public static int SCREEN_HEIGHT = 1080;
+
 
         public static List<String> names;
 
@@ -65,6 +67,7 @@ namespace Space {
 
         public MainClient() {
             graphics = new GraphicsDeviceManager(this);
+
             Content.RootDirectory = "Content";
         }
 
@@ -74,6 +77,8 @@ namespace Space {
             names = new List<String>();
             players = new List<Object>();
             soundEffects = new List<SoundEffect>();
+
+            r = new Random();
 
             ps = PlayState.PLAYING;
 
@@ -97,6 +102,8 @@ namespace Space {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             viewport = GraphicsDevice.Viewport;
+            viewport.Width = 1920;
+            viewport.Height = 1080;
 
             this.IsMouseVisible = true;
 
@@ -130,6 +137,11 @@ namespace Space {
             buttonList.Add(startButton);
             buttonList.Add(exitButton);
             buttonList.Add(optionsButton);
+
+            graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
+            graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
+            graphics.IsFullScreen = true;
+            graphics.ApplyChanges();
 
             var instance = soundEffects[0].CreateInstance();
             instance.IsLooped = true;
@@ -175,7 +187,7 @@ namespace Space {
                                 player.thrust();
                             }
                         }
-                        if (!player.isBoosting() && !player.isCooling()) {
+                        if (/*!player.isBoosting() && !player.isCooling()*/ 1 == 1) {
                             if (Keyboard.GetState().IsKeyDown(Keys.S) == true) {
                                 player.reverse();
                             }
@@ -256,9 +268,10 @@ namespace Space {
                     if (o.getType() == ObjectType.PROJECTILE) {
                         foreach (Object o2 in objects) {
                             Projectile p = (Projectile)o;
-                            if (o2.isHit(o)) {
+                            if (o2.isHit(o) && o2.getID() != o.getID()) {
                                 o.getHit(0);
                                 o2.getHit(p.getPower());
+                                //Console.WriteLine("Projectile " + o2.getID() + " hit " + o.getID());
                             }
                         }
                     }
@@ -381,7 +394,7 @@ namespace Space {
                                     new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
                                     SpriteEffects.None, 0);
                                 if(o.getType() == ObjectType.AI) {
-                                    spriteBatch.DrawString(font, o.getTask() + "\n" + o.getOwner(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                                    spriteBatch.DrawString(font, o.getTask() + "\n" + o.getOwner() + "\n" + o.getID(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
                                 }
                                 i++;
                                 if (o.getType() == ObjectType.STAR) {
@@ -391,8 +404,8 @@ namespace Space {
                         }
                         foreach (Object o in objects) {
                             ObjectType type = o.getType();
-                            Console.Write(o.getType().ToString());
-                            if (type == ObjectType.PROJECTILE/* && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)*/) {
+                            if (type == ObjectType.PROJECTILE && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                                //Console.WriteLine("start drawing laser");
                                 spriteBatch.Draw(o.getTexture(),
                                     new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
                                     null,
@@ -400,7 +413,7 @@ namespace Space {
                                     o.getAngle() + Math2.QUARTER_CIRCLE,
                                     new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
                                     SpriteEffects.None, 0);
-                                Console.Write("drawing projectile");
+                                //Console.WriteLine((int)o.getPos().X + ", " + (int)o.getPos().Y);
                                 i++;
                                 if (o.getType() == ObjectType.STAR) {
                                     spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);

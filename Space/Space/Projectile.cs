@@ -75,10 +75,12 @@ namespace Space {
         }
 
         public bool isHit(Object o) {
-            if (o.getID() == this.originID) {
+            if (o.getID() == this.getID()) {
+                //Console.WriteLine("Not hitting self");
                 return false;
             }
-            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            //Console.WriteLine("Projectile from " + this.originID + " hit " + o.getID());
+            return false;//Math2.inRadius(this.getPos(), o.getPos(), this.radius);
         }
 
         public void setCoords(float x, float y, float rot) {
@@ -104,6 +106,7 @@ namespace Space {
 
         public void getHit(float power) {
             this.alive = false;
+            //Console.WriteLine("getHit called on " + this.getID());
         }
 
         public string getOwner() {

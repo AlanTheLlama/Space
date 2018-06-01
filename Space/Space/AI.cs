@@ -47,7 +47,6 @@ namespace Space {
 
         //SERVER
         private int identifier;
-        Random r = new Random();
         private ObjectType type;
         Object playerRef;
 
@@ -83,11 +82,10 @@ namespace Space {
             this.nearbyShips = new List<AI>();
             //this.miningTarget = new List<Object>();
 
-            this.identifier = r.Next(0, 1000000);
             this.type = ObjectType.AI;
 
             this.radius = 32;
-            this.shield = 5000;
+            this.shield = 200;
             this.alive = true;
             this.cooling = false;
             this.boosting = false;
@@ -95,16 +93,22 @@ namespace Space {
             this.weapons = 24;
             this.currentState = State.IDLE;
             this.attackTargets = new List<Object>();
-    }
+            this.setIdentifier();
+            Console.WriteLine("New AI created with ID " + this.identifier);
+        }
 
         //GETTERS/SETTERS
 
         public void setRole(Roles r) {
-            role = r;
+            this.role = r;
         }
 
         public Roles getRole() {
             return role;
+        }
+
+        public void setIdentifier() {
+            this.identifier = MainClient.r.Next(0, 100000);
         }
         
         public void setHome(Vector2 h, SpaceObject hS) {
@@ -135,7 +139,7 @@ namespace Space {
         }
 
         public int getID() {
-            return identifier;
+            return this.identifier;
         }
 
         public Vector2 getPos() {
@@ -302,10 +306,15 @@ namespace Space {
                     break;
 
                 case State.COMBAT:
-                    targetSpeed = 1;
+                    nearbyShips = obtainSurroundings();
                     this.leftThrust();
-                    rotateToTarget(nearbyCombatants[0].getPos());
-                    fireWeapon(nearbyCombatants[0]);
+                    if (!nearbyCombatants.Any() && attackTargets.Any()) this.currentState = State.TRAVELLING;
+                    if (!nearbyCombatants.Any() && !attackTargets.Any()) this.currentState = State.PATROLLING;
+                    if (nearbyCombatants.Any()) {
+                        rotateToTarget(nearbyCombatants[0].getPos());
+                        maintainDistance(nearbyCombatants[0].getPos());
+                        fireWeapon(nearbyCombatants[0]);
+                    }
                     break;
 
                 case State.DEFENDING:
@@ -370,9 +379,10 @@ namespace Space {
                 float x = this.change.X;
                 float y = this.change.Y;
                 Vector2 angle = Math2.getUnitVector(x, y);
-                Laser laser = new Laser(this.pos, this.weapons, angle, this.identifier);
+                Projectile laser = new Projectile(this.pos, this.weapons, angle, this.getID());
                 MainClient.objects.Add(laser);
-                this.weaponCooldown = 4;
+                Console.WriteLine("Laser " + this.getID() + " firing");
+                this.weaponCooldown = 20;
                 return;
             }
             return;
@@ -454,6 +464,7 @@ namespace Space {
         public void pollSpeed() {
             if (this.getSpeed() < targetSpeed) this.thrust();
             if (this.getSpeed() > targetSpeed) this.brake();
+            if (this.getSpeed() > targetSpeed && targetSpeed < 0) this.reverse();
         }
 
         public void addAttackTarget(SpaceObject target) {
@@ -475,7 +486,7 @@ namespace Space {
         public void addPatrolTarget(MovingObject target) {
             patrolTargets.Add(target.getPos());
         }
-        public void addPatrolTarget(List<Object> target) {
+        public void addPatrolTarget(List<SpaceObject> target) {
             foreach(Object o in target) {
                 patrolTargets.Add(o.getPos());
             }
@@ -492,15 +503,23 @@ namespace Space {
 
             for (int i = 0; i < MainClient.world.factions.Count(); i++) {
                 foreach (AI ship in MainClient.world.factions[i].controlledShips) {
-                    if(distanceTo(ship.getPos()) < 1500) {
-                        surroundingShips.Add(ship);
-                        if(ship.attackTargets.Contains(this.attackTargets[0]) && ship.getOwner() != this.getOwner()) {
-                            alertFaction(ship.getOwner());
+                    if (ship.getOwner() != this.getOwner() && !surroundingShips.Contains(ship) && ship.isAlive()) {
+                        if (distanceTo(ship.getPos()) < 1500) {
+                            surroundingShips.Add(ship);
+                            if (ship.attackTargets.Contains(this.attackTargets[0]) && ship.getOwner() != this.getOwner()) {
+                                alertFaction(ship.getOwner());
+                            }
+                            if (publicEnemies.Any() && publicEnemies.Contains(ship.getOwner()) && !nearbyCombatants.Contains(ship) && ship.getRole() == Roles.MILITARY) {
+                                nearbyCombatants.Add(ship);
+                            }
                         }
-                        if (publicEnemies.Any() && publicEnemies.Contains(ship.getOwner())) nearbyCombatants.Add(ship);
                     }
                 }
             }
+
+            checkDead();
+
+            Console.WriteLine("Ship " + this.getID() + " found " + nearbyCombatants.Count() + " nearby combatants");
 
             return surroundingShips;
         }
@@ -526,6 +545,19 @@ namespace Space {
                 finishedRotating = false;
             }
             if (currentRotation > angleBetween - 5 && currentRotation < angleBetween + 5) finishedRotating = true;
+        }
+
+        public void checkDead() {
+            foreach(AI ship in this.nearbyShips.ToList()) {
+                if(!ship.isAlive()) {
+                    try {
+                        this.nearbyShips.Remove(ship);
+                        this.nearbyCombatants.Remove(ship);
+                    }catch {
+                        Console.WriteLine("Couldn't find ship to delete");
+                    }
+                }
+            }
         }
 
         public void alertFaction(string badguys) {
@@ -572,6 +604,20 @@ namespace Space {
             }
         }
 
+        public void maintainDistance(Vector2 target, int distance) {
+            float dist = distanceTo(target);
+            int desiredGap = distance;
+            if (dist > desiredGap) targetSpeed = 3;
+            if (dist < desiredGap) targetSpeed = -2;
+        }
+
+        public void maintainDistance(Vector2 target) {
+            float dist = distanceTo(target);
+            int desiredGap = MainClient.r.Next(100, 600);
+            if (dist > desiredGap) targetSpeed = 3;
+            if (dist < desiredGap) targetSpeed = -2;
+        }
+
         public void travelToTarget(SpaceObject target, int turnSpeed, int travelSpeed) {
             rotateToTarget(target.getPos());
             if (!finishedRotating) targetSpeed = turnSpeed;
@@ -609,13 +655,13 @@ namespace Space {
         }
 
         public void patrol() {
-            if (patrolTargets.Any()) {                          //if there are any locations in the patrol targets vector, start patrolling.
-                if (!arrived) {                                //if it hasn't arrived yet, go there.
-                    travelToTarget(patrolTargets[patrollingTo], 2, 5);
+            if (this.patrolTargets.Any()) {                          //if there are any locations in the patrol targets vector, start patrolling.
+                if (!this.arrived) {                                //if it hasn't arrived yet, go there.
+                    travelToTarget(this.patrolTargets[this.patrollingTo], 2, 5);
                 } else {
-                    if (patrollingTo == patrolTargets.Count) {
-                        patrollingTo = 0;
-                    } else patrollingTo += 1;                   //if it's arrived, move to the next location - if at the end of the list, go to the start
+                    if (this.patrollingTo == this.patrolTargets.Count) {
+                        this.patrollingTo = 0;
+                    } else this.patrollingTo += 1;                   //if it's arrived, move to the next location - if at the end of the list, go to the start
                 }
             }
         }
