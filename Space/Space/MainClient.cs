@@ -45,6 +45,7 @@ namespace Space {
         public static World world;
 
         public static List<Object> objects;
+        public static List<Asteroid> asteroids;
         public static List<AI> ships;
         public List<Object> toBeDestroyed;
         public List<Button> buttonList;
@@ -95,6 +96,7 @@ namespace Space {
             foreach (SpaceObject so in world.getSpaceObjects()) {
                 objects.Add(so);
             }
+            asteroids = world.asteroidJail;
             for (int i = 0; i < world.factions.Count(); i++) {
                 foreach (AI s in world.factions[i].controlledShips) {
                     ships.Add(s);
@@ -427,6 +429,18 @@ namespace Space {
                                 if (o.getType() == ObjectType.STAR) {
                                     spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
                                 }
+                            }
+                        }
+
+                        foreach(Asteroid o in asteroids) {
+                            if (Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                                spriteBatch.Draw(o.getTexture(),
+                                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
+                                    null,
+                                    Color.White,
+                                    o.getAngle() + Math2.QUARTER_CIRCLE,
+                                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
+                                    SpriteEffects.None, 0);
                             }
                         }
 
