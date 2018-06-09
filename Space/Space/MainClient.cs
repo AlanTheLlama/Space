@@ -45,6 +45,8 @@ namespace Space {
         public static World world;
 
         public static List<Object> objects;
+        public static List<AI> ships;
+        public List<Object> toBeDestroyed;
         public List<Button> buttonList;
         public static List<Object> players;
         char[] deliminators = { ',', ' ', '/', ';' };
@@ -73,6 +75,8 @@ namespace Space {
 
         protected override void Initialize() {
             objects = new List<Object>();
+            ships = new List<AI>();
+            toBeDestroyed = new List<Object>();
             buttonList = new List<Button>();
             names = new List<String>();
             players = new List<Object>();
@@ -90,6 +94,11 @@ namespace Space {
 
             foreach (SpaceObject so in world.getSpaceObjects()) {
                 objects.Add(so);
+            }
+            for (int i = 0; i < world.factions.Count(); i++) {
+                foreach (AI s in world.factions[i].controlledShips) {
+                    ships.Add(s);
+                }
             }
 
             handler = new ClientDataHandler();
@@ -258,7 +267,7 @@ namespace Space {
                 }
             }
 
-            List<Object> toBeDestroyed = new List<Object>();
+            toBeDestroyed.Clear();
 
             foreach (Object o in objects.ToList()) {
                 if (!o.isAlive()) {
@@ -266,7 +275,7 @@ namespace Space {
                 } else {
                     o.update(world);
                     if (o.getType() == ObjectType.PROJECTILE) {
-                        foreach (Object o2 in objects) {
+                        foreach (AI o2 in ships) {
                             Projectile p = (Projectile)o;
                             if (o2.isHit(o) && o2.getID() != o.getID()) {
                                 o.getHit(0);

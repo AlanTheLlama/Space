@@ -60,6 +60,7 @@ namespace Space {
         private bool cooling;
         private float radius;
         private float shield;
+        private float speed;
         private bool alive;
         private bool runningAway;
         private float weaponCooldown;
@@ -311,7 +312,7 @@ namespace Space {
         {
             if(scanCooldown == 0) {
                 nearbyShips = obtainSurroundings();      //band-aid fix for heavily taxing obtainSurroundings()
-                scanCooldown = 200;
+                scanCooldown = 1000;
             }
             scanCooldown--;
             
@@ -466,11 +467,8 @@ namespace Space {
         }
 
         public bool isHit(Object o) {
-            //return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
-            //if (o.getType() == ObjectType.PROJECTILE) {
-            //    return collision.Contains(o.getPos());
-            //}
-            return false;
+            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
+            //return false;
         }
 
         public void getHit(float power) {
@@ -481,9 +479,10 @@ namespace Space {
         }
 
         public void pollSpeed() {
-            if (this.getSpeed() < targetSpeed) this.thrust();
-            if (this.getSpeed() > targetSpeed) this.brake();
-            if (this.getSpeed() > targetSpeed && targetSpeed < 0) this.reverse();
+            this.speed = this.getSpeed();
+            if (this.speed < targetSpeed) this.thrust();
+            if (this.speed > targetSpeed) this.brake();
+            if (this.speed > targetSpeed && targetSpeed < 0) this.reverse();
         }
 
         public void addAttackTarget(SpaceObject target) {

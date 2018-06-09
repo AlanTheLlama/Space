@@ -21,6 +21,7 @@ namespace Space {
 
         private int militaristic, economical, aggression;          //characteristics that determine ship composition etc.
         private int patrolDist = 50;
+        private int minerals, gas;
 
         private int startingShips;
 

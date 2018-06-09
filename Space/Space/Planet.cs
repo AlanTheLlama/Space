@@ -26,6 +26,9 @@ namespace Space {
 
         //Resources
         private float iron;
+        private float aluminum;
+        private float mercury;
+        private float gas;
         private float gems;
 
         public Rectangle getCircle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
