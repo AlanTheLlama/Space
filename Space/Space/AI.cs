@@ -613,33 +613,41 @@ namespace Space {
         }
 
         public void miningLoop() {
-            if (this.mineTimer < 1000) {
+            if (this.mineTimer < 2) {
                 this.mineTimer++;
             } else this.mineTimer = 0;
 
             if(this.destination == this.miningTarget && this.minedStuff) {
                 this.travelToTarget(this.homeStar, 1, 5);
             }else if(this.destination == this.miningTarget && !this.minedStuff) {
-                if(!landed) land(this.miningTarget);
+                if(!this.landed) this.land(this.miningTarget);
+
                 this.mineResource(MineReturn.ALUMINUM);
-                this.takeOff();
+
+                if(this.minedStuff)
+                    this.takeOff();
             }
             if(destination == homeStar) {
-                this.resources[2] = 0;
-                travelToTarget(miningTarget, 1, 5);
+                if (this.resources[2] > 0) {
+                    this.resources[2] = 0;
+                    this.minedStuff = false;
+                    Console.WriteLine("Ship " + this.getID() + " deposited aluminum (new balance " + this.resources[2].ToString() + ")");
+                }
+                this.travelToTarget(this.miningTarget, 1, 5);
             }
         }
 
         public void mineResource(MineReturn mr) {
-            if (landedOn.getType() == ObjectType.MINING_PLANET && this.mineTimer == 1000 && !this.minedStuff) {
+            if (landedOn.getType() == ObjectType.MINING_PLANET && this.mineTimer == 2 && !this.minedStuff) {
                 this.minedStuff = false;
                 Planet planet = (Planet)landedOn;
                 this.resources[(int)mr] += planet.mine(mr, this.minerLevel);
-                Console.WriteLine("Ship " + this.getID() + " mined " + this.resources[2] + " tons of aluminum");
-                if (this.resources[(int)mr] < maxLoad) mineResource(mr);
+                //Console.WriteLine("Ship " + this.getID() + " mined " + this.resources[2] + " tons of aluminum");
 
-                if (this.resources[(int)mr] > this.maxLoad) this.resources[(int)mr] = maxLoad;
-                this.minedStuff = true;
+                if (this.resources[(int)mr] > this.maxLoad) {
+                    this.resources[(int)mr] = maxLoad;
+                    this.minedStuff = true;
+                }
             }
             return;
         }

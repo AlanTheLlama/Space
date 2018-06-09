@@ -117,24 +117,24 @@ namespace Space {
             starList = new List<Star>();
             
             addStar(uniCenter.X - 5000, uniCenter.Y, 0);
-            addPlanet(solarSystemList[0].X + 1000, (int)solarSystemList[0].Y, 1);
+            addPlanet(solarSystemList[0].X + 1000, (int)solarSystemList[0].Y + 100, 1);
             addPlanet(solarSystemList[0].X - 2000, (int)solarSystemList[0].Y + 500, 2);
-            addPlanet(solarSystemList[0].X + 1000, (int)solarSystemList[0].Y, 3);
+            addPlanet(solarSystemList[0].X + 700, (int)solarSystemList[0].Y - 300, 3);
 
             addStar(uniCenter.X + 5000, uniCenter.Y, 4);
-            addPlanet(solarSystemList[4].X + 1000, (int)solarSystemList[4].Y, 5);
+            addPlanet(solarSystemList[4].X + 1000, (int)solarSystemList[4].Y + 100, 5);
             addPlanet(solarSystemList[4].X - 2000, (int)solarSystemList[4].Y + 500, 6);
-            addPlanet(solarSystemList[4].X + 1000, (int)solarSystemList[4].Y, 7);
+            addPlanet(solarSystemList[4].X + 700, (int)solarSystemList[4].Y - 300, 7);
 
             addStar(uniCenter.X, uniCenter.Y - 5000, 8);
-            addPlanet(solarSystemList[8].X + 1000, (int)solarSystemList[8].Y, 9);
+            addPlanet(solarSystemList[8].X + 1000, (int)solarSystemList[8].Y + 100, 9);
             addPlanet(solarSystemList[8].X - 2000, (int)solarSystemList[8].Y + 500, 10);
-            addPlanet(solarSystemList[8].X + 1000, (int)solarSystemList[8].Y, 11);
+            addPlanet(solarSystemList[8].X + 700, (int)solarSystemList[8].Y - 300, 11);
 
             addStar(uniCenter.X, uniCenter.Y + 5000, 12);
-            addPlanet(solarSystemList[12].X + 1000, (int)solarSystemList[12].Y, 13);
+            addPlanet(solarSystemList[12].X + 1000, (int)solarSystemList[12].Y + 100, 13);
             addPlanet(solarSystemList[12].X - 2000, (int)solarSystemList[12].Y + 500, 14);
-            addPlanet(solarSystemList[12].X + 1000, (int)solarSystemList[12].Y, 15);
+            addPlanet(solarSystemList[12].X + 700, (int)solarSystemList[12].Y - 300, 15);
 
             addPlanet(MainClient.world.getSizeX() / 2, MainClient.world.getSizeY() / 2, 16);
             asteroidJail.Add(new Asteroid(30, 30, 10));
