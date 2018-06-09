@@ -15,6 +15,7 @@ namespace Space {
         public List<SpaceObject> contestedPlanets;
         public List<SpaceObject> controlledStars;
         public List<string> publicEnemies;
+        public float[] resources;
         private enum Tasks { PATROL, ATTACK, DEFEND, MINE, SCOUT}
 
         public String name;
@@ -36,6 +37,7 @@ namespace Space {
             this.contestedPlanets = new List<SpaceObject>();
             this.controlledStars = new List<SpaceObject>();
             this.publicEnemies = new List<string>();
+            this.resources = new float[] { 0, 0, 0, 0, 0 };
             this.reevaluate = true;
 
             decideName();
@@ -202,7 +204,7 @@ namespace Space {
             Random r = new Random();
             int rand;
             foreach (AI ship in this.controlledShips) {
-                ship.setOwner(this.name);
+                ship.setOwner(this.name, this);
                 ship.setHome(controlledStars[0].getPos(), controlledStars[0]);
                 rand = r.Next(0, 10);
                 if (!bandits) {
@@ -240,6 +242,18 @@ namespace Space {
                     ship.setState(AI.State.MINING);
                 }
             }
+        }
+
+        public void recieveResources(float[] r) {
+            for (int i = 0; i < r.Count(); i++) {
+                this.resources[i] += r[i];
+            }
+            displayResources();
+        }
+
+        public void displayResources() {
+            Console.WriteLine("RESOURCE REPORT - " + this.name + "\nIron: " + this.resources[0] + "\nGems: " + this.resources[1] + "\nAluminum: " + this.resources[2] +
+                "\nMercury: " + this.resources[3] + "\nGas: " + this.resources[4] + "\n_____________________________________________________");
         }
 
         private void findLocalPlanets() {

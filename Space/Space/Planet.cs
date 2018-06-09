@@ -22,6 +22,7 @@ namespace Space {
         private bool alive;
         private ObjectType type;
         public static String owner;
+        public string resourceStringFinal;
         public int id;
         public int influenceRadius;
         public int influencers;
@@ -51,7 +52,7 @@ namespace Space {
 
             this.numRes = MainClient.r.Next(0, 4);
             string resourceStringBase = "01234";
-            string resourceStringFinal = "";
+            this.resourceStringFinal = "";
             this.aluminum = 1000;
 
             for(int i = 0; i < numRes; i++) {

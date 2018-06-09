@@ -26,6 +26,7 @@ namespace Space {
         public Vector2 home;
         public SpaceObject destination;
         public SpaceObject homeStar;
+        public Faction homeFaction;
         public SpaceObject landedOn;
         private float aimRotation;
         private float rotSpeed;
@@ -336,7 +337,7 @@ namespace Space {
         {
             if(scanCooldown == 0) {
                 nearbyShips = obtainSurroundings();      //band-aid fix for heavily taxing obtainSurroundings()
-                scanCooldown = 1000;
+                scanCooldown = 60;
             }
             scanCooldown--;
             
@@ -622,15 +623,15 @@ namespace Space {
             }else if(this.destination == this.miningTarget && !this.minedStuff) {
                 if(!this.landed) this.land(this.miningTarget);
 
-                this.mineResource(MineReturn.ALUMINUM);
+                this.mineResource(MineReturn.ALUMINUM);                     //aluminum for now until the faction can decide what it needs
 
                 if(this.minedStuff)
                     this.takeOff();
             }
+
             if(destination == homeStar) {
-                if (this.resources[2] > 0) {
-                    this.resources[2] = 0;
-                    this.minedStuff = false;
+                if (this.totalResources() > 0) {
+                    this.depositResources();
                     Console.WriteLine("Ship " + this.getID() + " deposited aluminum (new balance " + this.resources[2].ToString() + ")");
                 }
                 this.travelToTarget(this.miningTarget, 1, 5);
@@ -652,6 +653,17 @@ namespace Space {
             return;
         }
 
+        public float totalResources() {
+            float r = resources[0] + resources[1] + resources[2] + resources[3] + resources[4];
+            return r;
+        }
+
+        public void depositResources() {
+            homeFaction.recieveResources(this.resources);
+            this.emptyLoad();
+            this.minedStuff = false;
+        }
+
         public void land(SpaceObject so) {
             if (!landed) {
                 landed = true;
@@ -665,6 +677,12 @@ namespace Space {
         public void takeOff() {
             landed = false;
             this.landedOn = null;
+        }
+
+        public void emptyLoad() {
+            for(int i = 0; i < resources.Count(); i++) {
+                resources[i] = 0;
+            }
         }
 
         public void returnHome() {
@@ -760,6 +778,11 @@ namespace Space {
 
         public string getOwner() {
             return this.owner;
+        }
+
+        public void setOwner(string newOwner, Faction f) {
+            this.owner = newOwner;
+            this.homeFaction = f;
         }
 
         public void setOwner(string newOwner) {
