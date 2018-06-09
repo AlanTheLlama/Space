@@ -86,11 +86,11 @@ namespace Space {
 
             ps = PlayState.PLAYING;
 
-            world = new World(MAP_WIDTH, MAP_HEIGHT); //regular world
-            world.Generate(10000, 12000);
+            //world = new World(MAP_WIDTH, MAP_HEIGHT); //regular world
+            //world.Generate(10000, 12000);
 
-            //world = new World(15000, 15000);            //test world
-            //world.generateTestWorld();
+            world = new World(15000, 15000);            //test world
+            world.generateTestWorld();
 
             foreach (SpaceObject so in world.getSpaceObjects()) {
                 objects.Add(so);

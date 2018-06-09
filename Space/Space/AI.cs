@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -25,6 +26,7 @@ namespace Space {
         public Vector2 home;
         public SpaceObject destination;
         public SpaceObject homeStar;
+        public SpaceObject landedOn;
         private float aimRotation;
         private float rotSpeed;
         private float baseRotSpeed;
@@ -36,11 +38,17 @@ namespace Space {
         private bool finishedRotating;
         private bool arrived;
         private bool minedStuff;
+        private bool landed;
+        float[] resources;
+        private int minerLevel;
+        private float maxLoad;
+        private int mineTimer;
         private int patrollingTo;
         private bool returning;
         public enum Roles { MILITARY, ECONOMY }
         public Roles role;
         string owner;
+        Timer timer;
 
         //NON MOVEMENT
         private Vector2 change;
@@ -70,7 +78,8 @@ namespace Space {
 
         public Rectangle getCircle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public AI (float x, float y) { 
+        public AI (float x, float y) {
+            //basic traits
             this.pos = new Vector2(x, y);
             this.aimRotation = (float)0.5 * (float)Math.PI;           //don't press enter.
             this.velocity = new Vector2(0, 0);
@@ -80,20 +89,35 @@ namespace Space {
             this.backwardForce = (float)1; 
             this.sideForce = (float)0.5;
             this.mass = 30;
+
+            //movement traits
             this.runningAway = false;
             this.arrived = false;
             this.returning = false;
             this.patrollingTo = 0;
+
+            //knowledge lists
             this.patrolTargets = new List<Vector2>();
             this.publicEnemies = new List<string>();
             this.nearbyCombatants = new List<AI>();
             this.nearbyShips = new List<AI>();
             this.surroundingShips = new List<AI>();
             //this.miningTarget = new List<Object>();
+
+            this.timer = new Timer();
+            this.mineTimer = 0;
+
+            //resource data
+            this.resources = new float[] { 0, 0, 0, 0, 0 };      //IRON, GEMS, ALUMINUM, MERCURY, GAS (0, 1, 2, 3, 4)
+            this.landed = false;
+            this.minerLevel = 1;
+            this.maxLoad = 50;
+            
+            //take a wild guess
+            this.type = ObjectType.AI;
             tex = MainClient.enemy;
 
-            this.type = ObjectType.AI;
-
+            //combat traits
             this.radius = 32;
             this.detector = new Circle((int)this.pos.X, (int)this.pos.Y, 750);
             this.collision = new Rectangle((int)this.pos.X, (int)this.pos.Y, 72, 91);
@@ -532,7 +556,7 @@ namespace Space {
                                     nearbyCombatants.Add(ship);
                                 }
                             }catch(ArgumentOutOfRangeException ie) {
-                                Console.WriteLine("List empty" + ie.ToString());
+                                //Console.WriteLine("List empty" + ie.ToString());
                             }
                         }
                     }
@@ -589,12 +613,50 @@ namespace Space {
         }
 
         public void miningLoop() {
-            if(destination == miningTarget) {
-                travelToTarget(homeStar, 1, 5);
+            if (this.mineTimer < 1000) {
+                this.mineTimer++;
+            } else this.mineTimer = 0;
+
+            if(this.destination == this.miningTarget && this.minedStuff) {
+                this.travelToTarget(this.homeStar, 1, 5);
+            }else if(this.destination == this.miningTarget && !this.minedStuff) {
+                if(!landed) land(this.miningTarget);
+                this.mineResource(MineReturn.ALUMINUM);
+                this.takeOff();
             }
             if(destination == homeStar) {
+                this.resources[2] = 0;
                 travelToTarget(miningTarget, 1, 5);
             }
+        }
+
+        public void mineResource(MineReturn mr) {
+            if (landedOn.getType() == ObjectType.MINING_PLANET && this.mineTimer == 1000 && !this.minedStuff) {
+                this.minedStuff = false;
+                Planet planet = (Planet)landedOn;
+                this.resources[(int)mr] += planet.mine(mr, this.minerLevel);
+                Console.WriteLine("Ship " + this.getID() + " mined " + this.resources[2] + " tons of aluminum");
+                if (this.resources[(int)mr] < maxLoad) mineResource(mr);
+
+                if (this.resources[(int)mr] > this.maxLoad) this.resources[(int)mr] = maxLoad;
+                this.minedStuff = true;
+            }
+            return;
+        }
+
+        public void land(SpaceObject so) {
+            if (!landed) {
+                landed = true;
+            }
+            if (this.getSpeed() > 0) {
+                this.brake();
+            }
+            this.landedOn = so;
+        }
+
+        public void takeOff() {
+            landed = false;
+            this.landedOn = null;
         }
 
         public void returnHome() {

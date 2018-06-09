@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 namespace Space {
     public enum MineReturn {
         IRON = 0,
-        GEMS = 1
+        GEMS = 1,
+        ALUMINUM = 2,
+        MERCURY = 3,
+        GAS = 4
     };
 
     public class Planet : SpaceObject {
@@ -25,12 +28,14 @@ namespace Space {
         public Circle rad;
 
         //Resources
-        private float iron;
-        private float aluminum;
-        private float mercury;
-        private float gas;
-        private float gems;
+        private int numRes;
 
+        private float iron;           //0
+        private float gems;           //1
+        private float aluminum;       //2
+        private float mercury;        //3
+        private float gas;            //4
+        
         public Rectangle getCircle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Planet(float x, float y, float radius, int id) {
@@ -44,9 +49,35 @@ namespace Space {
             owner = "Independent";
             this.influenceRadius = 7500;
 
-            this.iron = MainClient.r.Next(100, 1000);
-            this.gems = MainClient.r.Next(100, 1000);
+            this.numRes = MainClient.r.Next(0, 4);
+            string resourceStringBase = "01234";
+            string resourceStringFinal = "";
+            this.aluminum = 1000;
 
+            for(int i = 0; i < numRes; i++) {
+                resourceStringFinal = resourceStringFinal + resourceStringBase[MainClient.r.Next(0, 4)].ToString();
+            }
+
+            for(int i = 0; i < numRes; i++) {
+                switch (Int32.Parse(resourceStringFinal[i].ToString())) {
+                    case 0:
+                        this.iron = MainClient.r.Next(1000, 10000);
+                        break;
+                    case 1:
+                        this.gems = MainClient.r.Next(1000, 10000);
+                        break;
+                    case 2:
+                        this.aluminum = MainClient.r.Next(1000, 10000);
+                        break;
+                    case 3:
+                        this.mercury = MainClient.r.Next(1000, 10000);
+                        break;
+                    case 4:
+                        this.gas = MainClient.r.Next(1000, 10000);
+                        break;
+                }
+            }
+            
             this.rad = new Circle((int)this.pos.X + (int)this.radius, (int)this.pos.Y + (int)this.radius, (int)this.radius);
         }
 
@@ -120,6 +151,37 @@ namespace Space {
             }
             this.iron -= ret[(int)MineReturn.IRON];
             this.gems -= ret[(int)MineReturn.GEMS];
+            return ret;
+        }
+
+        public float mine(MineReturn mr, float power) {
+            float ret = 0;
+
+            ret = (float)0.01 * MainClient.r.Next(1 * (int)power, 3 * (int)power);
+
+            switch (mr) {
+                case MineReturn.IRON:
+                    if (this.iron < ret) ret = this.iron;
+                    this.iron -= ret;
+                    break;
+                case MineReturn.GEMS:
+                    if (this.gems < ret) ret = this.gems;
+                    this.gems -= ret;
+                    break;
+                case MineReturn.ALUMINUM:
+                    if (this.aluminum < ret) ret = this.aluminum;
+                    this.aluminum -= ret;
+                    break;
+                case MineReturn.MERCURY:
+                    if (this.mercury < ret) ret = this.mercury;
+                    this.mercury -= ret;
+                    break;
+                case MineReturn.GAS:
+                    if (this.gas < ret) ret = this.gas;
+                    this.gas -= ret;
+                    break;
+            }
+
             return ret;
         }
 

@@ -290,7 +290,7 @@ namespace Space {
             Random r = new Random();
             int rInt = r.Next(0, 9);
 
-            if (rInt == 7) return true;
+            if (rInt == -1) return true;      //set to -1 to disable bandits
 
             return false;
         }
