@@ -406,10 +406,24 @@ namespace Space {
             this.change.Y = mo.getPos().Y - this.pos.Y;
             dist = (float)Math.Sqrt(this.change.X * this.change.X + this.change.Y * this.change.Y);
         }
+
         public float distanceTo(Vector2 vc) {
             this.change.X = vc.X - this.pos.X;
             this.change.Y = vc.Y - this.pos.Y;
             return (float)Math.Sqrt(this.change.X * this.change.X + this.change.Y * this.change.Y);
+        }
+
+        public bool objectWithin(Vector2 vc, float d) {
+            /*this.change.X = vc.X - this.pos.X;
+            this.change.Y = vc.Y - this.pos.Y;
+            return (float)Math.Sqrt(this.change.X * this.change.X + this.change.Y * this.change.Y);*/
+            float x1 = this.pos.X;
+            float x2 = vc.X;
+            float y1 = this.pos.Y;
+            float y2 = vc.Y;
+
+            if (((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) < d * d) return true;
+            return false;
         }
 
         public void fireWeapon(MovingObject mo)
@@ -554,7 +568,7 @@ namespace Space {
             for (int i = 0; i < MainClient.world.factions.Count(); i++) {
                 foreach (AI ship in MainClient.world.factions[i].military) {
                     if (ship.getOwner() != this.owner && !surroundingShips.Contains(ship) && Math.Abs(ship.pos.X - this.pos.X) < 5000) {
-                        if (distanceTo(ship.getPos()) < 1500) {
+                        if (objectWithin(ship.getPos(), 1500)) {
                             surroundingShips.Add(ship);
                             try {
                                 if (ship.attackTargets.Contains(this.attackTargets[0]) && ship.getOwner() != this.getOwner()) {
@@ -580,18 +594,20 @@ namespace Space {
 
         public List<AI> obtainSurroundings2() {
             foreach(AI ship in MainClient.ships) {
-                if (ship.getOwner() != this.owner && !surroundingShips.Contains(ship) && Math.Abs(ship.pos.X - this.pos.X) < 5000) {
-                    if (distanceTo(ship.getPos()) < 1500) {
-                        surroundingShips.Add(ship);
-                        try {
-                            if (ship.attackTargets.Contains(this.attackTargets[0]) && ship.getOwner() != this.getOwner()) {
-                                alertFaction(ship.getOwner());
+                if (ship.getOwner() != this.owner && Math.Abs(ship.pos.X - this.pos.X) < 5000) {
+                    if (!surroundingShips.Contains(ship)) {
+                        if (objectWithin(ship.getPos(), 1500)) {
+                            surroundingShips.Add(ship);
+                            try {
+                                if (ship.attackTargets.Contains(this.attackTargets[0]) && ship.getOwner() != this.getOwner()) {
+                                    alertFaction(ship.getOwner());
+                                }
+                                if (publicEnemies.Any() && publicEnemies.Contains(ship.getOwner()) && !nearbyCombatants.Contains(ship) && ship.getRole() == Roles.MILITARY) {
+                                    nearbyCombatants.Add(ship);
+                                }
+                            } catch (ArgumentOutOfRangeException ie) {
+                                //Console.WriteLine("List empty" + ie.ToString());
                             }
-                            if (publicEnemies.Any() && publicEnemies.Contains(ship.getOwner()) && !nearbyCombatants.Contains(ship) && ship.getRole() == Roles.MILITARY) {
-                                nearbyCombatants.Add(ship);
-                            }
-                        } catch (ArgumentOutOfRangeException ie) {
-                            //Console.WriteLine("List empty" + ie.ToString());
                         }
                     }
                 }

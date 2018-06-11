@@ -406,7 +406,6 @@ namespace Space {
                         }
 
                         foreach(PlayerShip o in players) {
-                            Console.Out.WriteLine("Player Location: " + o.getPos().X + ", " + o.getPos().Y);
                             spriteBatch.Draw(o.getTexture(),
                                     new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
                                     null,
