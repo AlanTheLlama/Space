@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Timers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -49,7 +49,6 @@ namespace Space {
         public enum Roles { MILITARY, ECONOMY }
         public Roles role;
         string owner;
-        Timer timer;
 
         //NON MOVEMENT
         private Vector2 change;
@@ -105,7 +104,6 @@ namespace Space {
             this.surroundingShips = new List<AI>();
             //this.miningTarget = new List<Object>();
 
-            this.timer = new Timer();
             this.mineTimer = 0;
 
             //resource data
@@ -336,11 +334,13 @@ namespace Space {
         public void update(World w)
         {
             if(scanCooldown == 0) {
-                nearbyShips = obtainSurroundings();      //band-aid fix for heavily taxing obtainSurroundings()
+                nearbyShips = obtainSurroundings2();      //band-aid fix for heavily taxing obtainSurroundings()
                 scanCooldown = 60;
             }
             scanCooldown--;
-            
+
+            this.isHit();
+
             //if(this.getSpeed() > 0)
             //Console.WriteLine(this.getSpeed() + "location: " + this.getPos().X + ", " + this.getPos().Y);   //cpu death
             //BEHAVIOUR
@@ -421,7 +421,7 @@ namespace Space {
                 float y = this.change.Y;
                 Vector2 angle = Math2.getUnitVector(x, y);
                 Projectile laser = new Projectile(this.pos, this.weapons, angle, this.getID());
-                MainClient.objects.Add(laser);
+                MainClient.projectiles.Add(laser);
                 //Console.WriteLine("Laser " + this.getID() + " firing");
                 this.weaponCooldown = 20;
                 return;
@@ -491,10 +491,17 @@ namespace Space {
             }
         }
 
-        public bool isHit(Object o) {
-            return Math2.inRadius(this.getPos(), o.getPos(), this.radius);
-            //return false;
+        public void isHit() {
+            bool hit;
+            foreach(Projectile p in MainClient.projectiles) {
+                hit = Math2.inRadius(p.getPos(), this.collision);
+                if (hit) this.getHit(p.getPower());
+                if(hit)Console.Out.WriteLine("Hit!");
+                return;
+            }
         }
+
+        public bool isHit(Object o) { return false; }
 
         public void getHit(float power) {
             this.shield -= power;
@@ -541,7 +548,7 @@ namespace Space {
             miningTarget = target;
         }
 
-        public List<AI> obtainSurroundings() {
+        public List<AI> obtainSurroundings1() {
             surroundingShips.Clear();
 
             for (int i = 0; i < MainClient.world.factions.Count(); i++) {
@@ -559,6 +566,32 @@ namespace Space {
                             }catch(ArgumentOutOfRangeException ie) {
                                 //Console.WriteLine("List empty" + ie.ToString());
                             }
+                        }
+                    }
+                }
+            }
+
+            checkDead();
+
+            //Console.WriteLine("Ship " + this.getID() + " found " + nearbyCombatants.Count() + " nearby combatants");
+
+            return surroundingShips;
+        }
+
+        public List<AI> obtainSurroundings2() {
+            foreach(AI ship in MainClient.ships) {
+                if (ship.getOwner() != this.owner && !surroundingShips.Contains(ship) && Math.Abs(ship.pos.X - this.pos.X) < 5000) {
+                    if (distanceTo(ship.getPos()) < 1500) {
+                        surroundingShips.Add(ship);
+                        try {
+                            if (ship.attackTargets.Contains(this.attackTargets[0]) && ship.getOwner() != this.getOwner()) {
+                                alertFaction(ship.getOwner());
+                            }
+                            if (publicEnemies.Any() && publicEnemies.Contains(ship.getOwner()) && !nearbyCombatants.Contains(ship) && ship.getRole() == Roles.MILITARY) {
+                                nearbyCombatants.Add(ship);
+                            }
+                        } catch (ArgumentOutOfRangeException ie) {
+                            //Console.WriteLine("List empty" + ie.ToString());
                         }
                     }
                 }

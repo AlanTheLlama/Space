@@ -47,6 +47,7 @@ namespace Space {
         public static List<Object> objects;
         public static List<Asteroid> asteroids;
         public static List<AI> ships;
+        public static List<Projectile> projectiles;
         public List<Object> toBeDestroyed;
         public List<Button> buttonList;
         public static List<Object> players;
@@ -82,16 +83,17 @@ namespace Space {
             names = new List<String>();
             players = new List<Object>();
             soundEffects = new List<SoundEffect>();
+            projectiles = new List<Projectile>();
 
             r = new Random();
 
             ps = PlayState.PLAYING;
 
-            //world = new World(MAP_WIDTH, MAP_HEIGHT); //regular world
-            //world.Generate(10000, 12000);
+            world = new World(MAP_WIDTH, MAP_HEIGHT); //regular world
+            world.Generate(10000, 12000);
 
-            world = new World(15000, 15000);            //test world
-            world.generateTestWorld();
+            //world = new World(15000, 15000);            //test world, uncomment these and comment the two world lines above for test world and vice versa
+            //world.generateTestWorld();
 
             foreach (SpaceObject so in world.getSpaceObjects()) {
                 objects.Add(so);
@@ -176,7 +178,7 @@ namespace Space {
 
             //bob.travelToTarget(player.getPos(), 1, 4);
             //bob.rotateToTarget(player.getPos());
-            
+            player.update(world);
 
             if (Keyboard.GetState().IsKeyDown(Keys.Enter) && connected == false) {
                 try {
@@ -238,7 +240,7 @@ namespace Space {
                                 if (Mouse.GetState().LeftButton == ButtonState.Pressed) {
                                     Laser l = player.fireWeapon(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
                                     if (l != null) {
-                                        objects.Add(l);
+                                        projectiles.Add(l);
                                     }
                                     //Console.WriteLine(Mouse.GetState().Position.X.ToString() + ", " + Mouse.GetState().Position.Y.ToString());
                                 }
@@ -271,22 +273,29 @@ namespace Space {
 
             toBeDestroyed.Clear();
 
-            foreach (Object o in objects.ToList()) {
+            foreach (AI o in ships.ToList()) {
                 if (!o.isAlive()) {
-                    toBeDestroyed.Add(o);
+                    ships.Remove(o);
                 } else {
                     o.update(world);
-                    if (o.getType() == ObjectType.PROJECTILE) {
-                        foreach (AI o2 in ships) {
-                            Projectile p = (Projectile)o;
-                            if (o2.isHit(o) && o2.getID() != o.getID()) {
-                                o.getHit(0);
-                                o2.getHit(p.getPower());
+                    /*foreach(Object obj in objects) {
+                        if (obj.getType() == ObjectType.PROJECTILE) {
+                            Projectile p = (Projectile)obj;
+                            //p.update(world);
+                            if (o.isHit(p) && p.getID() != o.getID()) {
+                                p.getHit(0);
+                                o.getHit(p.getPower());
                                 //Console.WriteLine("Projectile " + o2.getID() + " hit " + o.getID());
                             }
                         }
-                    }
+                    }*/
                 }
+            }
+
+            foreach(Projectile p in projectiles.ToList()) {
+                if (!p.isAlive()) {
+                    projectiles.Remove(p);
+                }else p.update(world);
             }
 
             foreach (Faction f in world.factions) {
@@ -347,7 +356,9 @@ namespace Space {
                                         new Vector2(topLeft.X + SCREEN_WIDTH * (float)1.4, topLeft.Y + 48), Color.White);
                                 }
                             }
-                            if(o.getType() == ObjectType.AI) {
+                            
+                        }
+                        foreach(AI o in ships) {
                                 Vector2 pos = new Vector2(topLeft.X + o.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + o.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
                                 spriteBatch.Draw(minimap_star,
                                     new Rectangle((int)pos.X, (int)pos.Y, 5, 5),
@@ -356,7 +367,6 @@ namespace Space {
                                     0,
                                     new Vector2(minimap_star.Width / 2, minimap_star.Height / 2),
                                     SpriteEffects.None, 0);
-                            }
                         }
                         Vector2 shipPos = new Vector2(topLeft.X + player.getPos().X * SCREEN_WIDTH * SCALE / MAP_WIDTH, topLeft.Y + player.getPos().Y * SCREEN_HEIGHT * SCALE / MAP_HEIGHT);
                         spriteBatch.Draw(minimap_ship,
@@ -376,11 +386,12 @@ namespace Space {
                     } else {
                         int i = 0;
                         foreach (Object o in objects) {
+                            bool draw = Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS);
                             ObjectType type = o.getType();
                             if ((type == ObjectType.STAR ||
                                 type == ObjectType.MINING_PLANET ||
                                 type == ObjectType.ASTEROID) &&
-                                Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                                draw) {
                                 spriteBatch.Draw(o.getTexture(),
                                     new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
                                     null,
@@ -388,51 +399,49 @@ namespace Space {
                                     o.getAngle() + Math2.QUARTER_CIRCLE,
                                     new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
                                     SpriteEffects.None, 0);
-                                i++;
-                                if (o.getType() == ObjectType.STAR) {
-                                    spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
-                                }
-                            }
-                        }
-                        foreach (Object o in objects) {
-                            ObjectType type = o.getType();
-                            if ((type == ObjectType.PLAYER || type == ObjectType.AI) && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
-                                spriteBatch.Draw(o.getTexture(),
-                                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
-                                    null,
-                                    Color.White,
-                                    o.getAngle() + Math2.QUARTER_CIRCLE,
-                                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
-                                    SpriteEffects.None, 0);
-                                if(o.getType() == ObjectType.AI) {
-                                    spriteBatch.DrawString(font, o.getTask() + "\n" + o.getOwner() + "\n" + o.getID(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
-                                }
-                                i++;
-                                if (o.getType() == ObjectType.STAR) {
-                                    spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
-                                }
-                            }
-                        }
-                        foreach (Object o in objects) {
-                            ObjectType type = o.getType();
-                            if (type == ObjectType.PROJECTILE && Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
-                                //Console.WriteLine("start drawing laser");
-                                spriteBatch.Draw(o.getTexture(),
-                                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
-                                    null,
-                                    Color.White,
-                                    o.getAngle() + Math2.QUARTER_CIRCLE,
-                                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
-                                    SpriteEffects.None, 0);
-                                //Console.WriteLine((int)o.getPos().X + ", " + (int)o.getPos().Y);
-                                i++;
                                 if (o.getType() == ObjectType.STAR) {
                                     spriteBatch.DrawString(font, "Star ID: " + ((Star)o).getID().ToString(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
                                 }
                             }
                         }
 
+                        foreach(PlayerShip o in players) {
+                            Console.Out.WriteLine("Player Location: " + o.getPos().X + ", " + o.getPos().Y);
+                            spriteBatch.Draw(o.getTexture(),
+                                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
+                                    null,
+                                    Color.White,
+                                    o.getAngle() + Math2.QUARTER_CIRCLE,
+                                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
+                                    SpriteEffects.None, 0);
+                        }
+
                         foreach(Asteroid o in asteroids) {
+                            if (Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                                spriteBatch.Draw(o.getTexture(),
+                                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
+                                    null,
+                                    Color.White,
+                                    o.getAngle() + Math2.QUARTER_CIRCLE,
+                                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
+                                    SpriteEffects.None, 0);
+                            }
+                        }
+
+                        foreach(AI o in ships) {
+                            if (Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
+                                spriteBatch.Draw(o.getTexture(),
+                                    new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),
+                                    null,
+                                    Color.White,
+                                    o.getAngle() + Math2.QUARTER_CIRCLE,
+                                    new Vector2(o.getTexture().Width / 2, o.getTexture().Height / 2),
+                                    SpriteEffects.None, 0);
+
+                                spriteBatch.DrawString(font, o.getTask() + "\n" + o.getOwner() + "\n" + o.getID(), new Vector2(o.getPos().X, o.getPos().Y + 200), Color.White);
+                            }
+                        }
+                        foreach(Projectile o in projectiles) {
                             if (Math2.inRadius(player.getPos(), o.getPos(), RENDER_RADIUS)) {
                                 spriteBatch.Draw(o.getTexture(),
                                     new Rectangle((int)o.getPos().X, (int)o.getPos().Y, o.getTexture().Width, o.getTexture().Height),

@@ -194,7 +194,7 @@ namespace Space {
 
             for (int i = 0; i < startingShips; i++) {
                 this.controlledShips.Add(new AI(x + (i * 75), y));
-                MainClient.objects.Add(this.controlledShips[i]);
+                //MainClient.objects.Add(this.controlledShips[i]);
             }
         }
 

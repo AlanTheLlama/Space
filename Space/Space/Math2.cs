@@ -31,6 +31,12 @@ namespace Space {
             return ((float)Math2.getQuadSum(pos2.X - pos1.X, pos2.Y - pos1.Y)) < radius;
         }
 
+        public static bool inRadius(Vector2 pos1, Rectangle r) {
+            if (r.Contains(pos1)) return true;
+
+            return false;
+        }
+
 
         public static float toDegrees(float rad) {
             float deg = rad * (180f / (float)Math.PI);
